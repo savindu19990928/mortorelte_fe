@@ -53,9 +53,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
             <i className="ri-heart-line text-gray-600 hover:text-red-500"></i>
           </button>
-          <button className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
-            <i className="ri-eye-line text-gray-600"></i>
-          </button>
         </div>
       </div>
 

@@ -1,12 +1,12 @@
-
 'use client';
-
 import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -26,8 +26,49 @@ export default function RegisterPage() {
       alert('Passwords do not match');
       return;
     }
+    else if (!formData.agreeToTerms) {
+      alert('You must agree to the Terms and Conditions and Privacy Policy');
+      return;
+    }
     setIsLoading(true);
-    // Simulate registration
+    try {
+      const response = await fetch("https://admin.mortorelite.com/api/auth/register/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.email,
+          email: formData.email,
+          password: formData.password,
+          password_confirm: formData.confirmPassword,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        router.push("/auth/login");
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          phone: "",
+          agreeToTerms: false,
+        });
+      } else {
+        alert(data[Object.keys(data)[0]] || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Something went wrong. Please check your connection.");
+    } finally {
+      setIsLoading(false);
+    }
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);

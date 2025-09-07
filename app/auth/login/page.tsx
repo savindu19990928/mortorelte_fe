@@ -5,11 +5,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    remember: false
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -17,16 +21,71 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
+
+    try {
+      const response = await fetch("https://admin.mortorelite.com/api/auth/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (formData.remember) {
+          Cookies.set("refresh", data.tokens.refresh, {
+            secure: true,
+            path: "/",
+            sameSite: "Strict",
+            expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          });
+          Cookies.set("access", data.tokens.access, {
+            secure: true,
+            path: "/",
+            sameSite: "Strict",
+            expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+          });
+        } else {
+          Cookies.set("refresh", data.tokens.refresh, {
+            secure: true,
+            path: "/",
+            sameSite: "Strict"
+          });
+          Cookies.set("access", data.tokens.access, {
+            secure: true,
+            path: "/",
+            sameSite: "Strict"
+          });
+        }
+        router.push("/account");
+      } else {
+        alert(data[Object.keys(data)[0]] || "Login failed. Check your credentials.");
+        console.error("Login error:", data);
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Something went wrong. Please try again later.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
+    }));
+  };
+
+  const setRemember = () => {
+    setFormData(prev => ({
+      ...prev,
+      remember: !prev.remember,
     }));
   };
 
@@ -99,6 +158,8 @@ export default function LoginPage() {
                   name="remember-me"
                   type="checkbox"
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  checked={formData.remember}
+                  onChange={setRemember}
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                   Remember me
