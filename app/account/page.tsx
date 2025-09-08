@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import TrackOrderModal from '../components/TrackOrderModal';
 import AddAddressModal from '../components/AddAddressModal';
+import Locked from '../locked';
+import Cookies from 'js-cookie';
 
 const orderHistory = [
   {
@@ -30,10 +32,6 @@ const orderHistory = [
 ];
 
 export default function AccountPage() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
-  const [addressModal, setAddressModal] = useState(false);
-  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [userInfo, setUserInfo] = useState({
     firstName: 'John',
     lastName: 'Doe',
@@ -44,6 +42,33 @@ export default function AccountPage() {
     state: 'NY',
     zipCode: '10001'
   });
+
+  useEffect(() => {
+    Locked()
+      .then(data => {
+        if (data) {
+          setUserInfo(prev => ({
+            ...prev,
+            firstName: data.first_name,
+            lastName: data.last_name,
+            phone: data.phone,
+            email: data.email
+          }));
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  const handleSignOut = () => {
+    Cookies.remove('refresh');
+    Cookies.remove('remember');
+    Cookies.remove('access');
+  };
+
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
+  const [addressModal, setAddressModal] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
 
   const handleTrackOrder = (orderId: string) => {
     setTrackingModal({ isOpen: true, orderId });
@@ -75,7 +100,7 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="bg-gray-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -103,17 +128,16 @@ export default function AccountPage() {
                   <p className="text-sm text-gray-500">{userInfo.email}</p>
                 </div>
               </div>
-              
+
               <nav className="space-y-1">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 text-left rounded-md transition-colors duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 text-left rounded-md transition-colors duration-200 ${activeTab === tab.id
+                      ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                   >
                     <i className={tab.icon}></i>
                     <span className="text-sm font-medium">{tab.name}</span>
@@ -124,6 +148,7 @@ export default function AccountPage() {
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <Link
                   href="/auth/login"
+                  onClick={handleSignOut}
                   className="w-full flex items-center space-x-3 px-3 py-2 text-left rounded-md text-red-600 hover:bg-red-50 transition-colors duration-200"
                 >
                   <i className="ri-logout-box-line"></i>
@@ -139,7 +164,7 @@ export default function AccountPage() {
             {activeTab === 'dashboard' && (
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                   <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center">
@@ -152,7 +177,7 @@ export default function AccountPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center">
                       <div className="p-2 bg-green-100 rounded-md">
@@ -164,7 +189,7 @@ export default function AccountPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center">
                       <div className="p-2 bg-yellow-100 rounded-md">
@@ -176,7 +201,7 @@ export default function AccountPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center">
                       <div className="p-2 bg-purple-100 rounded-md">
@@ -198,7 +223,7 @@ export default function AccountPage() {
                       View All
                     </Link>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {orderHistory.slice(0, 3).map((order) => (
                       <div key={order.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
@@ -208,9 +233,8 @@ export default function AccountPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-medium text-gray-900">${order.total}</p>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {order.status}
                           </span>
                         </div>
@@ -225,7 +249,7 @@ export default function AccountPage() {
             {activeTab === 'orders' && (
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Order History</h1>
-                
+
                 <div className="space-y-6">
                   {orderHistory.map((order) => (
                     <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -236,14 +260,13 @@ export default function AccountPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-lg font-bold text-gray-900">${order.total}</p>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }`}>
                             {order.status}
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="space-y-3">
                         {order.items.map((item, index) => (
                           <div key={index} className="flex items-center justify-between">
@@ -255,9 +278,9 @@ export default function AccountPage() {
                           </div>
                         ))}
                       </div>
-                      
+
                       <div className="mt-4 flex space-x-3">
-                        <button 
+                        <button
                           onClick={() => handleTrackOrder(order.id)}
                           className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
                         >
@@ -277,7 +300,7 @@ export default function AccountPage() {
             {activeTab === 'profile' && (
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile Information</h1>
-                
+
                 <form onSubmit={handleUpdateProfile} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -285,7 +308,7 @@ export default function AccountPage() {
                       <input
                         type="text"
                         value={userInfo.firstName}
-                        onChange={(e) => setUserInfo({...userInfo, firstName: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -294,7 +317,7 @@ export default function AccountPage() {
                       <input
                         type="text"
                         value={userInfo.lastName}
-                        onChange={(e) => setUserInfo({...userInfo, lastName: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -303,7 +326,7 @@ export default function AccountPage() {
                       <input
                         type="email"
                         value={userInfo.email}
-                        onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -312,7 +335,7 @@ export default function AccountPage() {
                       <input
                         type="tel"
                         value={userInfo.phone}
-                        onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -321,7 +344,7 @@ export default function AccountPage() {
                       <input
                         type="text"
                         value={userInfo.address}
-                        onChange={(e) => setUserInfo({...userInfo, address: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -330,7 +353,7 @@ export default function AccountPage() {
                       <input
                         type="text"
                         value={userInfo.city}
-                        onChange={(e) => setUserInfo({...userInfo, city: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, city: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -339,7 +362,7 @@ export default function AccountPage() {
                       <input
                         type="text"
                         value={userInfo.state}
-                        onChange={(e) => setUserInfo({...userInfo, state: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, state: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
@@ -348,12 +371,12 @@ export default function AccountPage() {
                       <input
                         type="text"
                         value={userInfo.zipCode}
-                        onChange={(e) => setUserInfo({...userInfo, zipCode: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, zipCode: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
-                  
+
                   <div className="mt-6">
                     <button
                       type="submit"
@@ -370,7 +393,7 @@ export default function AccountPage() {
             {activeTab === 'addresses' && (
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Saved Addresses</h1>
-                
+
                 {savedAddresses.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     {savedAddresses.map((address) => (
@@ -395,7 +418,7 @@ export default function AccountPage() {
                             </button>
                           </div>
                         </div>
-                        
+
                         <div className="text-sm text-gray-600 space-y-1">
                           {address.company && <p>{address.company}</p>}
                           <p>{address.address1}</p>
@@ -412,8 +435,8 @@ export default function AccountPage() {
                     <p className="text-gray-500 text-center">No saved addresses yet.</p>
                   </div>
                 )}
-                
-                <button 
+
+                <button
                   onClick={() => setAddressModal(true)}
                   className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
                 >
@@ -476,20 +499,20 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Modals */}
       <TrackOrderModal
         isOpen={trackingModal.isOpen}
         onClose={() => setTrackingModal({ isOpen: false, orderId: '' })}
         orderId={trackingModal.orderId}
       />
-      
+
       <AddAddressModal
         isOpen={addressModal}
         onClose={() => setAddressModal(false)}
         onSave={handleAddAddress}
       />
-      
+
       <Footer />
     </div>
   );
