@@ -37,10 +37,6 @@ export default function AccountPage() {
     lastName: 'Doe',
     email: 'john.doe@email.com',
     phone: '+1 (555) 123-4567',
-    address: '123 Main Street',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001'
   });
 
   useEffect(() => {
@@ -69,6 +65,11 @@ export default function AccountPage() {
   const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
   const [addressModal, setAddressModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [password, setPassword] = useState({
+    old_password: "",
+    new_password: "",
+    confirm_password: ""
+  });
 
   const handleTrackOrder = (orderId: string) => {
     setTrackingModal({ isOpen: true, orderId });
@@ -82,10 +83,50 @@ export default function AccountPage() {
     setSavedAddresses(prev => [...prev, newAddress]);
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle profile update
-    alert('Profile updated successfully!');
+    try {
+      const access_token = Cookies.get('access');
+      const response = await fetch("https://admin.mortorelite.com/api/auth/profile/", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+        body: JSON.stringify({
+          first_name: userInfo.firstName,
+          last_name: userInfo.lastName,
+          phone: userInfo.phone,
+          email: userInfo.email
+        })
+      });
+      if (response.ok) {
+        alert('Profile updated successfully!');
+      }
+    } catch (error) {
+      alert('Profile updation failed!');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const access_token = Cookies.get('access');
+      const response = await fetch("https://admin.mortorelite.com/api/auth/change-password/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+        body: JSON.stringify({
+          old_password: password.old_password,
+          new_password: password.new_password,
+          confirm_password: password.confirm_password
+        })
+      });
+      if (response.ok) {
+        alert('Password updated successfully!');
+      } else {
+        const data = await response.json();
+        alert(data[Object.keys(data)[0]]);
+      }
+    } catch (error) {
+      alert(error);
+    }
   };
 
   const tabs = [
@@ -339,42 +380,6 @@ export default function AccountPage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                      <input
-                        type="text"
-                        value={userInfo.address}
-                        onChange={(e) => setUserInfo({ ...userInfo, address: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                      <input
-                        type="text"
-                        value={userInfo.city}
-                        onChange={(e) => setUserInfo({ ...userInfo, city: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                      <input
-                        type="text"
-                        value={userInfo.state}
-                        onChange={(e) => setUserInfo({ ...userInfo, state: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-                      <input
-                        type="text"
-                        value={userInfo.zipCode}
-                        onChange={(e) => setUserInfo({ ...userInfo, zipCode: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
                   </div>
 
                   <div className="mt-6">
@@ -463,11 +468,12 @@ export default function AccountPage() {
                 <div className="space-y-6">
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
-                    <form className="space-y-4">
+                    <form onSubmit={handleChangePassword} className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
                         <input
                           type="password"
+                          onChange={(e) => setPassword({ ...password, old_password: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
@@ -475,6 +481,7 @@ export default function AccountPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
                         <input
                           type="password"
+                          onChange={(e) => setPassword({ ...password, new_password: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
@@ -482,6 +489,7 @@ export default function AccountPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
                         <input
                           type="password"
+                          onChange={(e) => setPassword({ ...password, confirm_password: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
