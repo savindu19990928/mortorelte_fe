@@ -29,7 +29,7 @@ export default function LoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: formData.email,
+          email: formData.email,
           password: formData.password,
         }),
       });
@@ -38,6 +38,12 @@ export default function LoginPage() {
 
       if (response.ok) {
         if (formData.remember) {
+          Cookies.set("remember", 'true', {
+            secure: true,
+            path: "/",
+            sameSite: "Strict",
+            expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          });
           Cookies.set("refresh", data.tokens.refresh, {
             secure: true,
             path: "/",
@@ -51,6 +57,11 @@ export default function LoginPage() {
             expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
           });
         } else {
+          Cookies.set("remember", 'false', {
+            secure: true,
+            path: "/",
+            sameSite: "Strict",
+          });
           Cookies.set("refresh", data.tokens.refresh, {
             secure: true,
             path: "/",

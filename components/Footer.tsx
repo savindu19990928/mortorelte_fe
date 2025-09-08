@@ -73,7 +73,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8 mt-12">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2024 Motor Elite. All rights reserved.
+              2025 Mortor Elite. Made by <a className="nav-link d-inline p-0 text-white" href="https://www.devrious.lk/" target="_blank" rel="noopener">Devrious</a>
             </div>
             <div className="flex space-x-6">
               <Link href="/privacy" className="text-gray-400 hover:text-white text-sm">Privacy Policy</Link>

@@ -2,6 +2,7 @@
 import Cookies from 'js-cookie';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Auth from '../app/auth';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,8 +12,7 @@ export default function Header() {
 
   useEffect(() => {
     setIsMounted(true);
-
-    // Example check: if user is saved in localStorage
+    Auth();
     const user = Cookies.get('refresh');
     if (user) {
       setIsLoggedIn(true);
