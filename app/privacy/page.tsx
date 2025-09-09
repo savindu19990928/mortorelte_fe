@@ -1,12 +1,15 @@
 
 'use client';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-white">
+      <Header />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Privacy Policy</h1>
-        
+
         <div className="text-sm text-gray-500 mb-8">
           Last updated: January 15, 2024
         </div>
@@ -21,7 +24,7 @@ export default function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Information We Collect</h2>
-            
+
             <h3 className="text-xl font-medium text-gray-900 mb-3">Personal Information</h3>
             <p className="text-gray-600 mb-4">We may collect the following personal information:</p>
             <ul className="list-disc list-inside text-gray-600 space-y-2">
@@ -62,7 +65,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Information Sharing</h2>
             <p className="text-gray-600 mb-4">We may share your information with:</p>
-            
+
             <h3 className="text-xl font-medium text-gray-900 mb-3">Service Providers</h3>
             <ul className="list-disc list-inside text-gray-600 space-y-2 mb-4">
               <li>Payment processors for transaction processing</li>
@@ -112,7 +115,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your Rights and Choices</h2>
             <p className="text-gray-600 mb-4">You have the following rights regarding your personal information:</p>
-            
+
             <h3 className="text-xl font-medium text-gray-900 mb-3">Access and Updates</h3>
             <ul className="list-disc list-inside text-gray-600 space-y-2 mb-4">
               <li>Access your account information anytime</li>
@@ -208,6 +211,7 @@ export default function PrivacyPolicyPage() {
           </section>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

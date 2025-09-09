@@ -1,12 +1,15 @@
 
 'use client';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 
 export default function ShippingPage() {
   return (
     <div className="min-h-screen bg-white">
+      <Header />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Shipping Information</h1>
-        
+
         <div className="space-y-8">
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shipping Methods & Rates</h2>
@@ -106,6 +109,7 @@ export default function ShippingPage() {
           </section>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -1,12 +1,15 @@
 
 'use client';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-white">
+      <Header />
       <div className="max-w-4xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Terms of Service</h1>
-        
+
         <div className="text-sm text-gray-500 mb-8">
           Last updated: January 15, 2024
         </div>
@@ -34,7 +37,7 @@ export default function TermsOfServicePage() {
 
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Use of Our Services</h2>
-            
+
             <h3 className="text-xl font-medium text-gray-900 mb-3">Permitted Uses</h3>
             <p className="text-gray-600 mb-4">You may use our services to:</p>
             <ul className="list-disc list-inside text-gray-600 space-y-2 mb-4">
@@ -74,7 +77,7 @@ export default function TermsOfServicePage() {
 
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Orders and Payments</h2>
-            
+
             <h3 className="text-xl font-medium text-gray-900 mb-3">Order Process</h3>
             <ul className="list-disc list-inside text-gray-600 space-y-2 mb-4">
               <li>All orders are subject to acceptance and availability</li>
@@ -254,6 +257,7 @@ export default function TermsOfServicePage() {
           </section>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
