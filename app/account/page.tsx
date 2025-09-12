@@ -32,11 +32,22 @@ const orderHistory = [
 ];
 
 export default function AccountPage() {
-  const [userInfo, setUserInfo] = useState({
+  type UserInfo = {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    profilePicture: string | File | null;
+    profilePicturePreview?: string;
+  };
+
+  const [userInfo, setUserInfo] = useState<UserInfo>({
     firstName: 'John',
     lastName: 'Doe',
     email: 'john.doe@email.com',
     phone: '+1 (555) 123-4567',
+    profilePicture: null,
+    profilePicturePreview: undefined
   });
 
   useEffect(() => {
@@ -48,7 +59,8 @@ export default function AccountPage() {
             firstName: data.first_name,
             lastName: data.last_name,
             phone: data.phone,
-            email: data.email
+            email: data.email,
+            profilePicture: data.profile_picture,
           }));
         }
       })
@@ -83,25 +95,73 @@ export default function AccountPage() {
     setSavedAddresses(prev => [...prev, newAddress]);
   };
 
+  const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    setUserInfo((prev) => ({
+      ...prev,
+      profilePicture: file,
+      profilePicturePreview: URL.createObjectURL(file),
+    }));
+  };
+  
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const access_token = Cookies.get('access');
-      const response = await fetch("https://admin.mortorelite.com/api/auth/profile/", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
-        body: JSON.stringify({
-          first_name: userInfo.firstName,
-          last_name: userInfo.lastName,
-          phone: userInfo.phone,
-          email: userInfo.email
-        })
-      });
+      const access_token = Cookies.get("access");
+
+      let response;
+
+      if (userInfo.profilePicture instanceof File) {
+        const formData = new FormData();
+        formData.append("first_name", userInfo.firstName);
+        formData.append("last_name", userInfo.lastName);
+        formData.append("phone", userInfo.phone);
+        formData.append("email", userInfo.email);
+        formData.append("profile_picture", userInfo.profilePicture);
+
+        response = await fetch("https://admin.mortorelite.com/api/auth/profile/", {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+          body: formData,
+        });
+      } else {
+        response = await fetch("https://admin.mortorelite.com/api/auth/profile/", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${access_token}`,
+          },
+          body: JSON.stringify({
+            first_name: userInfo.firstName,
+            last_name: userInfo.lastName,
+            phone: userInfo.phone,
+            email: userInfo.email,
+          }),
+        });
+      }
+
       if (response.ok) {
-        alert('Profile updated successfully!');
+        const data = await response.json();
+        setUserInfo((prev) => ({
+          ...prev,
+          profilePicture:
+            userInfo.profilePicture instanceof File
+              ? data.profile_picture // backend returns URL
+              : prev.profilePicture,  // keep old picture
+          profilePicturePreview: userInfo.profilePicture instanceof File ? data.profile_picture : prev.profilePicturePreview,
+        }));
+        alert("Profile updated successfully!");
+      } else {
+        console.error(await response.text());
+        alert("Profile update failed!");
       }
     } catch (error) {
-      alert('Profile updation failed!');
+      console.error(error);
+      alert("Profile update failed!");
     }
   };
 
@@ -161,7 +221,18 @@ export default function AccountPage() {
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-blue-600 font-semibold text-lg">
-                    {userInfo.firstName[0]}{userInfo.lastName[0]}
+                    {userInfo.profilePicture ? (
+                      <img
+                        src={userInfo.profilePicture}
+                        alt="Profile"
+                        className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                      />
+                    ) : (
+                      <>
+                        {userInfo.firstName?.[0]}
+                        {userInfo.lastName?.[0]}
+                      </>
+                    )}
                   </span>
                 </div>
                 <div>
@@ -343,6 +414,35 @@ export default function AccountPage() {
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile Information</h1>
 
                 <form onSubmit={handleUpdateProfile} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  {/* Profile Picture Upload */}
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative">
+                      <img
+                        src={
+                          userInfo.profilePicturePreview ??
+                          (typeof userInfo.profilePicture === "string" ? userInfo.profilePicture : undefined) ??
+                          "/images/placeholderProfile.png"
+                        }
+                        alt="Profile"
+                        className="w-32 h-32 rounded-full object-cover border border-gray-300"
+                      />
+                      <label
+                        htmlFor="profilePicture"
+                        className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition"
+                      >
+                        📷
+                      </label>
+                      <input
+                        id="profilePicture"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePictureUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Info Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
