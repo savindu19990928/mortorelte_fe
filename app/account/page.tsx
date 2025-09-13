@@ -98,14 +98,14 @@ export default function AccountPage() {
   const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-  
+
     setUserInfo((prev) => ({
       ...prev,
       profilePicture: file,
       profilePicturePreview: URL.createObjectURL(file),
     }));
   };
-  
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -221,18 +221,8 @@ export default function AccountPage() {
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-blue-600 font-semibold text-lg">
-                    {userInfo.profilePicture ? (
-                      <img
-                        src={userInfo.profilePicture}
-                        alt="Profile"
-                        className="w-10 h-10 rounded-full object-cover border border-gray-300"
-                      />
-                    ) : (
-                      <>
-                        {userInfo.firstName?.[0]}
-                        {userInfo.lastName?.[0]}
-                      </>
-                    )}
+                    {userInfo.firstName?.[0]}
+                    {userInfo.lastName?.[0]}
                   </span>
                 </div>
                 <div>
