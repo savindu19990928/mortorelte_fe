@@ -7,6 +7,7 @@ import Footer from '../../components/Footer';
 import TrackOrderModal from '../components/TrackOrderModal';
 import AddAddressModal from '../components/AddAddressModal';
 import Locked from '../locked';
+import Auth from '../auth';
 import Cookies from 'js-cookie';
 
 const orderHistory = [
@@ -41,6 +42,27 @@ export default function AccountPage() {
     profilePicturePreview?: string;
   };
 
+  interface Address {
+    id: number;
+    type: string;
+    street: string;
+    city: string;
+    state: string;
+    postal_code: string;
+    country: string;
+    is_default: boolean;
+  }
+
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
+  const [addressModal, setAddressModal] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [password, setPassword] = useState({
+    old_password: "",
+    new_password: "",
+    confirm_password: ""
+  });
+
   const [userInfo, setUserInfo] = useState<UserInfo>({
     firstName: 'John',
     lastName: 'Doe',
@@ -49,6 +71,33 @@ export default function AccountPage() {
     profilePicture: null,
     profilePicturePreview: undefined
   });
+
+  const fetchAddress = async () => {
+    try {
+      const auth = await Auth();
+      let access_token = Cookies.get('access');
+      if (auth) {
+        const response = await fetch("https://admin.mortorelite.com/api/addresses/", {
+          method: "GET",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setSavedAddresses(data.results);
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+          window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
+        }
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  }
 
   useEffect(() => {
     Locked()
@@ -65,6 +114,7 @@ export default function AccountPage() {
         }
       })
       .catch(err => console.error(err));
+    fetchAddress();
   }, []);
 
   const handleSignOut = () => {
@@ -73,26 +123,74 @@ export default function AccountPage() {
     Cookies.remove('access');
   };
 
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
-  const [addressModal, setAddressModal] = useState(false);
-  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
-  const [password, setPassword] = useState({
-    old_password: "",
-    new_password: "",
-    confirm_password: ""
-  });
-
   const handleTrackOrder = (orderId: string) => {
     setTrackingModal({ isOpen: true, orderId });
   };
 
-  const handleAddAddress = (address: any) => {
-    const newAddress = {
-      id: Date.now().toString(),
-      ...address
-    };
-    setSavedAddresses(prev => [...prev, newAddress]);
+  const handleAddAddress = async (address: any) => {
+    try {
+      const auth = await Auth();
+      let access_token = Cookies.get('access');
+      if (auth) {
+        const response = await fetch("https://admin.mortorelite.com/api/addresses/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+          body: JSON.stringify({
+            type: address.type,
+            street: address.street,
+            city: address.city,
+            state: address.state,
+            postal_code: address.postal_code,
+            country: address.country,
+            is_default: address.is_default
+          }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setSavedAddresses(prev => [...prev, data]);
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+          window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
+        }
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const handleDeleteAddress = async (addressId: number) => {
+    try {
+      const auth = await Auth();
+      let access_token = Cookies.get('access');
+      if (auth) {
+        const response = await fetch(`https://admin.mortorelite.com/api/addresses/${addressId}/`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${access_token}`,
+          },
+        });
+
+        if (response.ok) {
+          setSavedAddresses(prev => prev.filter(addr => addr.id !== addressId));
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+          window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
+        }
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
   };
 
   const handleProfilePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,8 +248,8 @@ export default function AccountPage() {
           ...prev,
           profilePicture:
             userInfo.profilePicture instanceof File
-              ? data.profile_picture // backend returns URL
-              : prev.profilePicture,  // keep old picture
+              ? data.profile_picture
+              : prev.profilePicture,
           profilePicturePreview: userInfo.profilePicture instanceof File ? data.profile_picture : prev.profilePicturePreview,
         }));
         alert("Profile updated successfully!");
@@ -194,7 +292,7 @@ export default function AccountPage() {
     { id: 'orders', name: 'Orders', icon: 'ri-shopping-bag-line' },
     { id: 'profile', name: 'Profile', icon: 'ri-user-line' },
     { id: 'addresses', name: 'Addresses', icon: 'ri-map-pin-line' },
-    { id: 'wishlist', name: 'Wishlist', icon: 'ri-heart-line' },
+    // { id: 'wishlist', name: 'Wishlist', icon: 'ri-heart-line' },
     { id: 'settings', name: 'Settings', icon: 'ri-settings-line' }
   ];
 
@@ -304,7 +402,7 @@ export default function AccountPage() {
                     </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                  {/* <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center">
                       <div className="p-2 bg-purple-100 rounded-md">
                         <i className="ri-heart-line text-purple-600 text-xl"></i>
@@ -314,7 +412,7 @@ export default function AccountPage() {
                         <p className="text-2xl font-bold text-gray-900">5</p>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Recent Orders */}
@@ -496,31 +594,28 @@ export default function AccountPage() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <h3 className="font-medium text-gray-900">
-                              {address.firstName} {address.lastName}
+                              {address.type.charAt(0).toUpperCase() + address.type.slice(1)}
                             </h3>
-                            {address.isDefault && (
+                            {address.is_default && (
                               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
                                 Default
                               </span>
                             )}
                           </div>
                           <div className="flex space-x-2">
-                            <button className="text-gray-400 hover:text-gray-600 cursor-pointer">
-                              <i className="ri-edit-line"></i>
-                            </button>
-                            <button className="text-gray-400 hover:text-red-600 cursor-pointer">
+                            <button onClick={() => handleDeleteAddress(address.id)} className="text-gray-400 hover:text-red-600 cursor-pointer">
                               <i className="ri-delete-bin-line"></i>
                             </button>
                           </div>
                         </div>
 
                         <div className="text-sm text-gray-600 space-y-1">
-                          {address.company && <p>{address.company}</p>}
+                          {/* {address.company && <p>{address.company}</p>}
                           <p>{address.address1}</p>
-                          {address.address2 && <p>{address.address2}</p>}
-                          <p>{address.city}, {address.state} {address.zipCode}</p>
+                          {address.address2 && <p>{address.address2}</p>} */}
+                          <p>{address.street}</p>
+                          <p>{address.city}, {address.state} {address.postal_code}</p>
                           <p>{address.country}</p>
-                          <p>{address.phone}</p>
                         </div>
                       </div>
                     ))}
@@ -539,7 +634,7 @@ export default function AccountPage() {
                 </button>
               </div>
             )}
-
+            {/* 
             {activeTab === 'wishlist' && (
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-6">My Wishlist</h1>
@@ -550,7 +645,7 @@ export default function AccountPage() {
                   </Link>
                 </div>
               </div>
-            )}
+            )} */}
 
             {activeTab === 'settings' && (
               <div>
