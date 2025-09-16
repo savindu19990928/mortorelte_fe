@@ -53,7 +53,7 @@ export default function AccountPage() {
     is_default: boolean;
   }
 
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('orders');
   const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
   const [addressModal, setAddressModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
@@ -288,11 +288,9 @@ export default function AccountPage() {
   };
 
   const tabs = [
-    { id: 'dashboard', name: 'Dashboard', icon: 'ri-dashboard-line' },
     { id: 'orders', name: 'Orders', icon: 'ri-shopping-bag-line' },
     { id: 'profile', name: 'Profile', icon: 'ri-user-line' },
     { id: 'addresses', name: 'Addresses', icon: 'ri-map-pin-line' },
-    // { id: 'wishlist', name: 'Wishlist', icon: 'ri-heart-line' },
     { id: 'settings', name: 'Settings', icon: 'ri-settings-line' }
   ];
 
@@ -360,91 +358,6 @@ export default function AccountPage() {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Dashboard */}
-            {activeTab === 'dashboard' && (
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-md">
-                        <i className="ri-shopping-bag-line text-blue-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Orders</p>
-                        <p className="text-2xl font-bold text-gray-900">12</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-green-100 rounded-md">
-                        <i className="ri-truck-line text-green-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Delivered</p>
-                        <p className="text-2xl font-bold text-gray-900">8</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-yellow-100 rounded-md">
-                        <i className="ri-time-line text-yellow-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Pending</p>
-                        <p className="text-2xl font-bold text-gray-900">2</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-purple-100 rounded-md">
-                        <i className="ri-heart-line text-purple-600 text-xl"></i>
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Wishlist</p>
-                        <p className="text-2xl font-bold text-gray-900">5</p>
-                      </div>
-                    </div>
-                  </div> */}
-                </div>
-
-                {/* Recent Orders */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Recent Orders</h2>
-                    <Link href="#" onClick={() => setActiveTab('orders')} className="text-blue-600 hover:text-blue-500 text-sm font-medium">
-                      View All
-                    </Link>
-                  </div>
-
-                  <div className="space-y-4">
-                    {orderHistory.slice(0, 3).map((order) => (
-                      <div key={order.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                        <div>
-                          <p className="font-medium text-gray-900">Order #{order.id}</p>
-                          <p className="text-sm text-gray-500">{order.date}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium text-gray-900">${order.total}</p>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                            {order.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Orders */}
             {activeTab === 'orders' && (
               <div>
