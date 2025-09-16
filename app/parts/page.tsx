@@ -7,111 +7,114 @@ import Footer from '../../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 
-const products = [
-  {
-    id: 1,
-    name: 'Premium Brake Pads Set',
-    category: 'Brake System',
-    price: 89.99,
-    originalPrice: 109.99,
-    rating: 4.8,
-    reviews: 156,
-    image: 'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=300&height=300&seq=bp1&orientation=squarish',
-    brand: 'BrakeMaster',
-    inStock: true,
-    isOnSale: true
-  },
-  {
-    id: 2,
-    name: 'High Performance Air Filter',
-    category: 'Engine Parts',
-    price: 45.99,
-    rating: 4.7,
-    reviews: 89,
-    image: 'https://readdy.ai/api/search-image?query=High%20performance%20automotive%20air%20filter%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20engine%20air%20filter%20with%20pleated%20design%2C%20quality%20auto%20parts&width=300&height=300&seq=af1&orientation=squarish',
-    brand: 'AirFlow Pro',
-    inStock: true,
-    isOnSale: false
-  },
-  {
-    id: 3,
-    name: 'LED Headlight Bulbs H7',
-    category: 'Electrical',
-    price: 129.99,
-    rating: 4.9,
-    reviews: 234,
-    image: 'https://readdy.ai/api/search-image?query=LED%20automotive%20headlight%20bulbs%20H7%20type%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20bright%20LED%20car%20lights%2C%20premium%20auto%20electrical%20parts&width=300&height=300&seq=led1&orientation=squarish',
-    brand: 'BrightBeam',
-    inStock: true,
-    isOnSale: false
-  },
-  {
-    id: 4,
-    name: 'Shock Absorber Front Pair',
-    category: 'Suspension',
-    price: 189.99,
-    originalPrice: 229.99,
-    rating: 4.6,
-    reviews: 78,
-    image: 'https://readdy.ai/api/search-image?query=Automotive%20shock%20absorbers%20front%20pair%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20suspension%20parts%20for%20cars%2C%20quality%20auto%20parts%20with%20detailed%20metallic%20finish&width=300&height=300&seq=shock1&orientation=squarish',
-    brand: 'SmoothRide',
-    inStock: true,
-    isOnSale: true
-  },
-  {
-    id: 5,
-    name: 'Engine Oil Filter Premium',
-    category: 'Engine Parts',
-    price: 24.99,
-    rating: 4.5,
-    reviews: 145,
-    image: 'https://readdy.ai/api/search-image?query=Premium%20automotive%20engine%20oil%20filter%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20cylindrical%20oil%20filter%20with%20quality%20construction%2C%20auto%20maintenance%20parts&width=300&height=300&seq=of1&orientation=squarish',
-    brand: 'FilterPro',
-    inStock: true,
-    isOnSale: false
-  },
-  {
-    id: 6,
-    name: 'Ceramic Brake Rotors Set',
-    category: 'Brake System',
-    price: 259.99,
-    rating: 4.8,
-    reviews: 92,
-    image: 'https://readdy.ai/api/search-image?query=Ceramic%20automotive%20brake%20rotors%20set%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20performance%20brake%20discs%20with%20detailed%20metallic%20surface%2C%20premium%20auto%20parts&width=300&height=300&seq=br1&orientation=squarish',
-    brand: 'CeramicStop',
-    inStock: false,
-    isOnSale: false
-  },
-  {
-    id: 7,
-    name: 'Transmission Fluid ATF',
-    category: 'Transmission',
-    price: 34.99,
-    rating: 4.4,
-    reviews: 67,
-    image: 'https://readdy.ai/api/search-image?query=Automotive%20transmission%20fluid%20ATF%20bottle%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20red%20transmission%20oil%20container%2C%20quality%20auto%20fluids%20and%20lubricants&width=300&height=300&seq=tf1&orientation=squarish',
-    brand: 'FluidMax',
-    inStock: true,
-    isOnSale: false
-  },
-  {
-    id: 8,
-    name: 'Performance Exhaust Muffler',
-    category: 'Exhaust System',
-    price: 149.99,
-    originalPrice: 179.99,
-    rating: 4.7,
-    reviews: 103,
-    image: 'https://readdy.ai/api/search-image?query=Performance%20automotive%20exhaust%20muffler%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20stainless%20steel%20exhaust%20component%20with%20polished%20finish%2C%20quality%20auto%20parts&width=300&height=300&seq=ex1&orientation=squarish',
-    brand: 'PowerFlow',
-    inStock: true,
-    isOnSale: true
-  }
-];
+// const products = [
+//   {
+//     id: 1,
+//     name: 'Premium Brake Pads Set',
+//     category: 'Brake System',
+//     price: 89.99,
+//     originalPrice: 109.99,
+//     rating: 4.8,
+//     reviews: 156,
+//     image: 'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=300&height=300&seq=bp1&orientation=squarish',
+//     brand: 'BrakeMaster',
+//     inStock: true,
+//     isOnSale: true
+//   },
+//   {
+//     id: 2,
+//     name: 'High Performance Air Filter',
+//     category: 'Engine Parts',
+//     price: 45.99,
+//     rating: 4.7,
+//     reviews: 89,
+//     image: 'https://readdy.ai/api/search-image?query=High%20performance%20automotive%20air%20filter%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20engine%20air%20filter%20with%20pleated%20design%2C%20quality%20auto%20parts&width=300&height=300&seq=af1&orientation=squarish',
+//     brand: 'AirFlow Pro',
+//     inStock: true,
+//     isOnSale: false
+//   },
+//   {
+//     id: 3,
+//     name: 'LED Headlight Bulbs H7',
+//     category: 'Electrical',
+//     price: 129.99,
+//     rating: 4.9,
+//     reviews: 234,
+//     image: 'https://readdy.ai/api/search-image?query=LED%20automotive%20headlight%20bulbs%20H7%20type%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20bright%20LED%20car%20lights%2C%20premium%20auto%20electrical%20parts&width=300&height=300&seq=led1&orientation=squarish',
+//     brand: 'BrightBeam',
+//     inStock: true,
+//     isOnSale: false
+//   },
+//   {
+//     id: 4,
+//     name: 'Shock Absorber Front Pair',
+//     category: 'Suspension',
+//     price: 189.99,
+//     originalPrice: 229.99,
+//     rating: 4.6,
+//     reviews: 78,
+//     image: 'https://readdy.ai/api/search-image?query=Automotive%20shock%20absorbers%20front%20pair%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20suspension%20parts%20for%20cars%2C%20quality%20auto%20parts%20with%20detailed%20metallic%20finish&width=300&height=300&seq=shock1&orientation=squarish',
+//     brand: 'SmoothRide',
+//     inStock: true,
+//     isOnSale: true
+//   },
+//   {
+//     id: 5,
+//     name: 'Engine Oil Filter Premium',
+//     category: 'Engine Parts',
+//     price: 24.99,
+//     rating: 4.5,
+//     reviews: 145,
+//     image: 'https://readdy.ai/api/search-image?query=Premium%20automotive%20engine%20oil%20filter%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20cylindrical%20oil%20filter%20with%20quality%20construction%2C%20auto%20maintenance%20parts&width=300&height=300&seq=of1&orientation=squarish',
+//     brand: 'FilterPro',
+//     inStock: true,
+//     isOnSale: false
+//   },
+//   {
+//     id: 6,
+//     name: 'Ceramic Brake Rotors Set',
+//     category: 'Brake System',
+//     price: 259.99,
+//     rating: 4.8,
+//     reviews: 92,
+//     image: 'https://readdy.ai/api/search-image?query=Ceramic%20automotive%20brake%20rotors%20set%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20performance%20brake%20discs%20with%20detailed%20metallic%20surface%2C%20premium%20auto%20parts&width=300&height=300&seq=br1&orientation=squarish',
+//     brand: 'CeramicStop',
+//     inStock: false,
+//     isOnSale: false
+//   },
+//   {
+//     id: 7,
+//     name: 'Transmission Fluid ATF',
+//     category: 'Transmission',
+//     price: 34.99,
+//     rating: 4.4,
+//     reviews: 67,
+//     image: 'https://readdy.ai/api/search-image?query=Automotive%20transmission%20fluid%20ATF%20bottle%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20red%20transmission%20oil%20container%2C%20quality%20auto%20fluids%20and%20lubricants&width=300&height=300&seq=tf1&orientation=squarish',
+//     brand: 'FluidMax',
+//     inStock: true,
+//     isOnSale: false
+//   },
+//   {
+//     id: 8,
+//     name: 'Performance Exhaust Muffler',
+//     category: 'Exhaust System',
+//     price: 149.99,
+//     originalPrice: 179.99,
+//     rating: 4.7,
+//     reviews: 103,
+//     image: 'https://readdy.ai/api/search-image?query=Performance%20automotive%20exhaust%20muffler%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20stainless%20steel%20exhaust%20component%20with%20polished%20finish%2C%20quality%20auto%20parts&width=300&height=300&seq=ex1&orientation=squarish',
+//     brand: 'PowerFlow',
+//     inStock: true,
+//     isOnSale: true
+//   }
+// ];
 
 export default function PartsPage() {
+  const [maxPrice, setMaxPrice] = useState<number>(500);
   const [brands, setBrands] = useState<string[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState([0, 500]);
   useEffect(() => {
     fetch("https://admin.mortorelite.com/api/brands/")
       .then((res) => res.json())
@@ -126,18 +129,29 @@ export default function PartsPage() {
         setCategories(data.results.map((b: any) => b.name));
       })
       .catch((err) => console.error("Error fetching catagories:", err));
+
+    fetch("https://admin.mortorelite.com/api/products/")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(Object.values(data.results));
+        if (data.results.length > 0) {
+          const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
+          setPriceRange([0, maxPriceRange]);
+          setMaxPrice(maxPriceRange);
+        }
+      })
+      .catch((err) => console.error("Error fetching products:", err));
   }, []);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('featured');
-  const [priceRange, setPriceRange] = useState([0, 500]);
   const [showOnSale, setShowOnSale] = useState(false);
   const [showInStock, setShowInStock] = useState(false);
 
   const filteredProducts = products.filter(product => {
-    if (selectedCategory !== 'All' && product.category !== selectedCategory) return false;
-    if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
+    if (selectedCategory !== 'All' && product.category.name !== selectedCategory) return false;
+    if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand.name)) return false;
     if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
     if (showOnSale && !product.isOnSale) return false;
     if (showInStock && !product.inStock) return false;
@@ -186,6 +200,7 @@ export default function PartsPage() {
               onCategoryChange={setSelectedCategory}
               onBrandChange={setSelectedBrands}
               priceRange={priceRange}
+              maxPrice={maxPrice}
               onPriceRangeChange={setPriceRange}
               showOnSale={showOnSale}
               onShowOnSaleChange={setShowOnSale}

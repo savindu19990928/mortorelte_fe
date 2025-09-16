@@ -9,6 +9,7 @@ interface FilterSidebarProps {
   onCategoryChange: (category: string) => void;
   onBrandChange: (brands: string[]) => void;
   priceRange: number[];
+  maxPrice: number;
   onPriceRangeChange: (range: number[]) => void;
   showOnSale: boolean;
   onShowOnSaleChange: (show: boolean) => void;
@@ -24,6 +25,7 @@ export default function FilterSidebar({
   onCategoryChange,
   onBrandChange,
   priceRange,
+  maxPrice,
   onPriceRangeChange,
   showOnSale,
   onShowOnSaleChange,
@@ -99,7 +101,7 @@ export default function FilterSidebar({
             <input
               type="range"
               min="0"
-              max="500"
+              max={maxPrice}
               value={priceRange[1]}
               onChange={(e) => onPriceRangeChange([priceRange[0], parseInt(e.target.value)])}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
