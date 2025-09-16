@@ -168,7 +168,7 @@ export default function FilterSidebar({
         onClick={() => {
           onCategoryChange('All');
           onBrandChange([]);
-          onPriceRangeChange([0, 500]);
+          onPriceRangeChange([0, maxPrice]);
           onShowOnSaleChange(false);
           onShowInStockChange(false);
         }}
