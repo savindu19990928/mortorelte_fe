@@ -1,22 +1,11 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
-
-const categories = [
-  'Engine Parts', 'Brake System', 'Suspension', 'Transmission', 'Exhaust System', 
-  'Electrical', 'Cooling System', 'Fuel System', 'Interior', 'Exterior'
-];
-
-const brands = [
-  'BrakeMaster', 'AirFlow Pro', 'BrightBeam', 'SmoothRide', 'FilterPro', 
-  'CeramicStop', 'FluidMax', 'PowerFlow', 'ProEngine', 'ElitePerformance'
-];
 
 const products = [
   {
@@ -121,6 +110,24 @@ const products = [
 ];
 
 export default function PartsPage() {
+  const [brands, setBrands] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  useEffect(() => {
+    fetch("https://admin.mortorelite.com/api/brands/")
+      .then((res) => res.json())
+      .then((data) => {
+        setBrands(data.results.map((b: any) => b.name));
+      })
+      .catch((err) => console.error("Error fetching brands:", err));
+
+    fetch("https://admin.mortorelite.com/api/categories/")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data.results.map((b: any) => b.name));
+      })
+      .catch((err) => console.error("Error fetching catagories:", err));
+  }, []);
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('featured');
@@ -155,7 +162,7 @@ export default function PartsPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="bg-gray-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,7 +206,7 @@ export default function PartsPage() {
                   {selectedBrands.length > 0 && ` from ${selectedBrands.join(', ')}`}
                 </p>
               </div>
-              
+
               <div className="mt-4 sm:mt-0">
                 <label htmlFor="sort" className="sr-only">Sort by</label>
                 <select
@@ -277,7 +284,7 @@ export default function PartsPage() {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
