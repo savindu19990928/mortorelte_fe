@@ -1,61 +1,87 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 
-const products = {
-  '1': {
-    id: 1,
-    name: 'Premium Brake Pads Set',
-    category: 'Brake System',
-    price: 89.99,
-    originalPrice: 109.99,
-    rating: 4.8,
-    reviews: 156,
-    images: [
-      'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=600&height=600&seq=bp1&orientation=squarish',
-      'https://readdy.ai/api/search-image?query=Automotive%20brake%20pads%20close%20up%20detail%20view%20showing%20friction%20material%20and%20backing%20plate%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20quality%20brake%20components&width=600&height=600&seq=bp2&orientation=squarish',
-      'https://readdy.ai/api/search-image?query=Brake%20pads%20installation%20guide%20and%20components%20layout%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20auto%20parts%20with%20accessories%20and%20hardware&width=600&height=600&seq=bp3&orientation=squarish'
-    ],
-    brand: 'BrakeMaster',
-    sku: 'BM-BP-001',
-    inStock: true,
-    stockQuantity: 25,
-    description: 'Premium ceramic brake pads designed for superior stopping power and reduced noise. Features advanced friction material that provides consistent performance in all weather conditions.',
-    features: [
-      'Ceramic friction material for quiet operation',
-      'Superior heat dissipation',
-      'Extended pad life',
-      'OEM quality fit and finish',
-      'Low dust formula',
-      'Includes brake hardware kit'
-    ],
-    specifications: {
-      'Material': 'Ceramic',
-      'Position': 'Front',
-      'Warranty': '2 Years',
-      'Weight': '2.5 lbs',
-      'Dimensions': '12" x 8" x 3"',
-      'Compatibility': 'Most 2015+ vehicles'
-    },
-    compatibility: [
-      'Honda Civic 2016-2023',
-      'Toyota Camry 2018-2023',
-      'Nissan Altima 2019-2023',
-      'Hyundai Elantra 2017-2023'
-    ]
-  }
-};
+// const products = {
+//   '1': {
+//     id: 1,
+//     name: 'Premium Brake Pads Set',
+//     category: 'Brake System',
+//     price: 89.99,
+//     price: 109.99,
+//     rating: 4.8,
+//     reviews: 156,
+//     images: [
+//       'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=600&height=600&seq=bp1&orientation=squarish',
+//       'https://readdy.ai/api/search-image?query=Automotive%20brake%20pads%20close%20up%20detail%20view%20showing%20friction%20material%20and%20backing%20plate%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20quality%20brake%20components&width=600&height=600&seq=bp2&orientation=squarish',
+//       'https://readdy.ai/api/search-image?query=Brake%20pads%20installation%20guide%20and%20components%20layout%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20auto%20parts%20with%20accessories%20and%20hardware&width=600&height=600&seq=bp3&orientation=squarish'
+//     ],
+//     brand: 'BrakeMaster',
+//     sku: 'BM-BP-001',
+//     inStock: true,
+//     stockQuantity: 25,
+//     description: 'Premium ceramic brake pads designed for superior stopping power and reduced noise. Features advanced friction material that provides consistent performance in all weather conditions.',
+//     features: [
+//       'Ceramic friction material for quiet operation',
+//       'Superior heat dissipation',
+//       'Extended pad life',
+//       'OEM quality fit and finish',
+//       'Low dust formula',
+//       'Includes brake hardware kit'
+//     ],
+//     specifications: {
+//       'Material': 'Ceramic',
+//       'Position': 'Front',
+//       'Warranty': '2 Years',
+//       'Weight': '2.5 lbs',
+//       'Dimensions': '12" x 8" x 3"',
+//       'Compatibility': 'Most 2015+ vehicles'
+//     }
+//   }
+// };
 
 interface ProductDetailProps {
   productId: string;
 }
 
+interface Product {
+  id: number;
+  slug: string;
+  sku: string;
+  name: string;
+  description: string;
+  short_description: string;
+  weight: number;
+  dimensions: string;
+  condition: string;
+  warranty_months: number;
+  category: any;
+  price: number;
+  compare_price?: number;
+  average_rating: number;
+  reviews_count: number;
+  images?: any;
+  attributes?: any;
+  brand: any;
+  inventory: any;
+  in_stock: boolean;
+}
+
 export default function ProductDetail({ productId }: ProductDetailProps) {
-  const product = products[productId as keyof typeof products];
+  const [product, setProduct] = useState<Product>();
+  useEffect(() => {
+    fetch(`https://admin.mortorelite.com/api/products/${productId}/`)
+      .then((res) => res.json())
+      .then((data) => {
+        setProduct(data);
+      })
+      .catch((err) => console.error("Error fetching products:", err));
+  }, []);
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
@@ -75,12 +101,12 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     );
   }
 
-  const discount = product.originalPrice ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) : 0;
+  const discount = product.compare_price ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="bg-gray-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -89,7 +115,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             <i className="ri-arrow-right-s-line text-gray-400"></i>
             <Link href="/parts" className="text-gray-500 hover:text-gray-700">Parts</Link>
             <i className="ri-arrow-right-s-line text-gray-400"></i>
-            <Link href={`/parts?category=${encodeURIComponent(product.category)}`} className="text-gray-500 hover:text-gray-700">{product.category}</Link>
+            <Link href={`/parts?category=${encodeURIComponent(product.category.name)}`} className="text-gray-500 hover:text-gray-700">{product.category.name}</Link>
             <i className="ri-arrow-right-s-line text-gray-400"></i>
             <span className="text-gray-900 font-medium">{product.name}</span>
           </nav>
@@ -103,17 +129,16 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             {/* Image selector */}
             <div className="mx-auto mt-6 w-full max-w-2xl sm:block lg:max-w-none">
               <div className="grid grid-cols-3 gap-6">
-                {product.images.map((image, index) => (
+                {product.images.map((img: any, index: number) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`relative h-24 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-blue-500 ${
-                      selectedImage === index ? 'ring-2 ring-blue-500' : 'ring-1 ring-gray-300'
-                    }`}
+                    className={`relative h-24 bg-white rounded-md flex items-center justify-center text-sm font-medium uppercase text-gray-900 cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring focus:ring-offset-4 focus:ring-blue-500 ${selectedImage === index ? 'ring-2 ring-blue-500' : 'ring-1 ring-gray-300'
+                      }`}
                   >
                     <img
-                      src={image}
-                      alt={`${product.name} view ${index + 1}`}
+                      src={img.image}
+                      alt={`${img.alt_text} view ${index + 1}`}
                       className="h-full w-full object-cover object-top rounded-md"
                     />
                   </button>
@@ -124,8 +149,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             {/* Main image */}
             <div className="w-full aspect-square">
               <img
-                src={product.images[selectedImage]}
-                alt={product.name}
+                src={product.images[selectedImage].image}
+                alt={product.images[selectedImage].alt_text}
                 className="w-full h-full object-cover object-top sm:rounded-lg"
               />
             </div>
@@ -134,20 +159,20 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           {/* Product info */}
           <div className="mt-10 px-4 sm:px-0 sm:mt-16 lg:mt-0">
             <div className="flex items-center space-x-2 mb-2">
-              <span className="text-sm text-blue-600 font-medium">{product.brand}</span>
+              <span className="text-sm text-blue-600 font-medium">{product.brand.name}</span>
               <span className="text-sm text-gray-400">•</span>
               <span className="text-sm text-gray-500">SKU: {product.sku}</span>
             </div>
-            
+
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">{product.name}</h1>
-            
+
             <div className="mt-3">
               <h2 className="sr-only">Product information</h2>
               <div className="flex items-center space-x-4">
                 <p className="text-3xl font-bold text-gray-900">${product.price}</p>
-                {product.originalPrice && (
+                {product.compare_price && (
                   <>
-                    <p className="text-xl text-gray-500 line-through">${product.originalPrice}</p>
+                    <p className="text-xl text-gray-500 line-through">${product.compare_price}</p>
                     <span className="bg-red-100 text-red-800 text-sm font-medium px-2.5 py-0.5 rounded">
                       Save {discount}%
                     </span>
@@ -163,25 +188,25 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                   {[...Array(5)].map((_, i) => (
                     <i
                       key={i}
-                      className={`ri-star${i < Math.floor(product.rating) ? '-fill' : '-line'} text-yellow-400 text-lg`}
+                      className={`ri-star${i < Math.floor(product.average_rating) ? '-fill' : '-line'} text-yellow-400 text-lg`}
                     ></i>
                   ))}
                 </div>
                 <p className="ml-2 text-sm text-gray-600">
-                  {product.rating} out of 5 stars
+                  {product.average_rating} out of 5 stars
                 </p>
                 <p className="ml-4 text-sm text-gray-600">
-                  ({product.reviews} reviews)
+                  ({product.reviews_count} reviews)
                 </p>
               </div>
             </div>
 
             {/* Stock status */}
             <div className="mt-4">
-              {product.inStock ? (
+              {product.in_stock ? (
                 <p className="text-green-600 text-sm font-medium flex items-center">
                   <i className="ri-check-line mr-1"></i>
-                  In stock ({product.stockQuantity} available)
+                  In stock ({product.inventory.available_quantity} available)
                 </p>
               ) : (
                 <p className="text-red-600 text-sm font-medium flex items-center">
@@ -205,30 +230,30 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                     {quantity}
                   </span>
                   <button
-                    onClick={() => setQuantity(Math.min(product.stockQuantity, quantity + 1))}
+                    onClick={() => setQuantity(Math.min(product.inventory.available_quantity, quantity + 1))}
                     className="p-2 hover:bg-gray-50 cursor-pointer"
                   >
                     <i className="ri-add-line"></i>
                   </button>
                 </div>
-                
+
                 <button
-                  disabled={!product.inStock}
+                  disabled={!product.in_stock}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-md font-medium transition-colors duration-200 whitespace-nowrap"
                 >
                   Add to Cart
                 </button>
               </div>
-              
+
               <div className="mt-4 flex space-x-4">
                 <button className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md font-medium transition-colors duration-200 whitespace-nowrap">
                   <i className="ri-heart-line mr-2"></i>
                   Add to Wishlist
                 </button>
-                <button className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md font-medium transition-colors duration-200 whitespace-nowrap">
+                {/* <button className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md font-medium transition-colors duration-200 whitespace-nowrap">
                   <i className="ri-share-line mr-2"></i>
                   Share
-                </button>
+                </button> */}
               </div>
             </div>
 
@@ -236,10 +261,10 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             <div className="mt-8">
               <h3 className="text-lg font-medium text-gray-900">Key Features</h3>
               <ul className="mt-4 space-y-2">
-                {product.features.map((feature, index) => (
+                {product.attributes.map((attr:any, index:number) => (
                   <li key={index} className="flex items-center text-sm text-gray-600">
                     <i className="ri-check-line text-green-500 mr-2"></i>
-                    {feature}
+                    {attr.value}
                   </li>
                 ))}
               </ul>
@@ -254,17 +279,15 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               {[
                 { id: 'description', name: 'Description' },
                 { id: 'specifications', name: 'Specifications' },
-                { id: 'compatibility', name: 'Compatibility' },
-                { id: 'reviews', name: 'Reviews' }
+                // { id: 'reviews', name: 'Reviews' }
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   {tab.name}
                 </button>
@@ -281,26 +304,24 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
 
             {activeTab === 'specifications' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {Object.entries(product.specifications).map(([key, value]) => (
-                  <div key={key} className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="font-medium text-gray-900">{key}</span>
-                    <span className="text-gray-600">{value}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'compatibility' && (
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Compatible Vehicles</h4>
-                <ul className="space-y-2">
-                  {product.compatibility.map((vehicle, index) => (
-                    <li key={index} className="flex items-center text-gray-600">
-                      <i className="ri-car-line mr-2 text-blue-500"></i>
-                      {vehicle}
-                    </li>
-                  ))}
-                </ul>
+                <div key="1" className="flex justify-between py-2 border-b border-gray-200">
+                  <span className="font-medium text-gray-900">Condition</span>
+                  <span className="text-gray-600">
+                    {product.condition === "new" ? "Brand new" : product.condition}
+                  </span>
+                </div>
+                <div key="2" className="flex justify-between py-2 border-b border-gray-200">
+                  <span className="font-medium text-gray-900">Weight</span>
+                  <span className="text-gray-600">{product.weight} Kg</span>
+                </div>
+                <div key="3" className="flex justify-between py-2 border-b border-gray-200">
+                  <span className="font-medium text-gray-900">Dimensions</span>
+                  <span className="text-gray-600">{product.dimensions} (L x W x H in cm)</span>
+                </div>
+                <div key="4" className="flex justify-between py-2 border-b border-gray-200">
+                  <span className="font-medium text-gray-900">Warranty</span>
+                  <span className="text-gray-600">{product.warranty_months} months</span>
+                </div>
               </div>
             )}
 
@@ -313,18 +334,18 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                       {[...Array(5)].map((_, i) => (
                         <i
                           key={i}
-                          className={`ri-star${i < Math.floor(product.rating) ? '-fill' : '-line'} text-yellow-400 text-xl`}
+                          className={`ri-star${i < Math.floor(product.average_rating) ? '-fill' : '-line'} text-yellow-400 text-xl`}
                         ></i>
                       ))}
                     </div>
-                    <span className="text-2xl font-bold text-gray-900">{product.rating}</span>
+                    <span className="text-2xl font-bold text-gray-900">{product.average_rating}</span>
                     <span className="text-gray-600">out of 5</span>
-                    <span className="text-gray-600">({product.reviews} reviews)</span>
+                    <span className="text-gray-600">({product.reviews_count} reviews)</span>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  {/* Sample reviews */}
+                  {/* Reviews */}
                   <div className="border-b border-gray-200 pb-6">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
@@ -365,7 +386,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

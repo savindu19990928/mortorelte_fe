@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface Product {
   id: number;
+  slug: string;
   name: string;
   category: any;
   price: number;
@@ -70,7 +71,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <p className="text-xs text-gray-500 mt-1">{product.category.name}</p>
         </div>
 
-        <Link href={`/parts/${product.id}`}>
+        <Link href={`/parts/${product.slug}`}>
           <h3 className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2 cursor-pointer">
             {product.name}
           </h3>
