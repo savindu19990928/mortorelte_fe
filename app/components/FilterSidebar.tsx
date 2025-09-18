@@ -140,9 +140,8 @@ export default function FilterSidebar({
 
       {/* Special Offers */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Special Offers</h4>
         <div className="space-y-2">
-          <label className="flex items-center cursor-pointer">
+          {/* <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
               checked={showOnSale}
@@ -150,7 +149,7 @@ export default function FilterSidebar({
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <span className="ml-2 text-sm text-gray-700">On Sale</span>
-          </label>
+          </label> */}
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -158,7 +157,7 @@ export default function FilterSidebar({
               onChange={(e) => onShowInStockChange(e.target.checked)}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <span className="ml-2 text-sm text-gray-700">In Stock Only</span>
+            <span className="ml-2 text-sm text-gray-700">In Stock</span>
           </label>
         </div>
       </div>

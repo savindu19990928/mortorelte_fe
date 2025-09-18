@@ -9,6 +9,8 @@ import FilterSidebar from '../components/FilterSidebar';
 
 export default function PartsPage() {
   const [maxPrice, setMaxPrice] = useState<number>(500);
+  const [pageCount, setPageCount] = useState<number>(1);
+  const [page, setPage] = useState<number>(1);
   const [brands, setBrands] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -28,7 +30,7 @@ export default function PartsPage() {
       })
       .catch((err) => console.error("Error fetching catagories:", err));
 
-    fetch("https://admin.mortorelite.com/api/products/")
+    fetch("https://admin.mortorelite.com/api/products/?page=1")
       .then((res) => res.json())
       .then((data) => {
         setProducts(Object.values(data.results));
@@ -36,6 +38,7 @@ export default function PartsPage() {
           const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
           setPriceRange([0, maxPriceRange]);
           setMaxPrice(maxPriceRange);
+          setPageCount(Math.ceil(data.count / 20));
         }
       })
       .catch((err) => console.error("Error fetching products:", err));
@@ -47,16 +50,58 @@ export default function PartsPage() {
   const [showOnSale, setShowOnSale] = useState(false);
   const [showInStock, setShowInStock] = useState(false);
 
-  const filteredProducts = products.filter(product => {
-    if (selectedCategory !== 'All' && product.category.name !== selectedCategory) return false;
-    if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand.name)) return false;
-    if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
-    if (showOnSale && !product.compare_price) return false;
-    if (showInStock && !product.in_stock) return false;
-    return true;
-  });
+  // const filteredProducts = products.filter(product => {
+  //   if (selectedCategory !== 'All' && product.category.name !== selectedCategory) return false;
+  //   if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand.name)) return false;
+  //   if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
+  //   if (showOnSale && !product.compare_price) return false;
+  //   if (showInStock && !product.in_stock) return false;
+  //   return true;
+  // });
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  const filteredProducts = async (): Promise<any[]> => {
+    try {
+      const params = new URLSearchParams();
+      if (selectedCategory !== "All") {
+        params.append("category__name__icontains", selectedCategory);
+      }
+      if (selectedBrands.length > 0) {
+        params.append("brand__name__icontains", selectedBrands.join(","));
+      }
+      if (showInStock) {
+        params.append("in_stock", 'true');
+      }
+      params.append("price__gte", priceRange[0].toString());
+      params.append("price__lte", priceRange[1].toString());
+      params.append("page", page.toString());
+
+      const queries = params.toString();
+      const res = await fetch("https://admin.mortorelite.com/api/products/?" + queries);
+      const data = await res.json();
+
+      setProducts(Object.values(data.results));
+      setPageCount(Math.ceil(data.count / 20));
+
+      if (data.results.length > 0) {
+        const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
+        setMaxPrice(maxPriceRange);
+        if (maxPriceRange < priceRange[1]) {
+          setPriceRange([priceRange[0], maxPriceRange]);
+        }
+      }
+
+      return Object.values(data.results);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    filteredProducts();
+  }, [selectedBrands, selectedCategory, showInStock, showOnSale, priceRange, page]);
+
+  const sortedProducts = [...products].sort((a, b) => {
     switch (sortBy) {
       case 'price-low':
         return a.price - b.price;
@@ -174,19 +219,35 @@ export default function PartsPage() {
                   </div>
                   <div>
                     <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                      <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                      {/* Prev Button */}
+                      <button
+                        onClick={() => setPage(page - 1)}
+                        disabled={page === 1}
+                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                      >
                         <i className="ri-arrow-left-s-line"></i>
                       </button>
-                      <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-                        1
-                      </button>
-                      <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        2
-                      </button>
-                      <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        3
-                      </button>
-                      <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+
+                      {/* Page Numbers */}
+                      {Array.from({ length: pageCount }, (_, i) => i + 1).map((i) => (
+                        <button
+                          key={i}
+                          onClick={() => setPage(i)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${i === page
+                              ? "bg-blue-50 text-blue-600 border-gray-300"
+                              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                            }`}
+                        >
+                          {i}
+                        </button>
+                      ))}
+
+                      {/* Next Button */}
+                      <button
+                        onClick={() => setPage(page + 1)}
+                        disabled={page === pageCount}
+                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                      >
                         <i className="ri-arrow-right-s-line"></i>
                       </button>
                     </nav>
