@@ -66,7 +66,7 @@ export default function PartsPage() {
         params.append("category__name__icontains", selectedCategory);
       }
       if (selectedBrands.length > 0) {
-        params.append("brand__name__icontains", selectedBrands.join(","));
+        params.append("brand", selectedBrands.join(","));
       }
       if (showInStock) {
         params.append("in_stock", 'true');
