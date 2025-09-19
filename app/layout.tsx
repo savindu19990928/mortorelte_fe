@@ -1,7 +1,7 @@
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pacifico } from "next/font/google";
 import "./globals.css";
+import { GlobalProvider } from "../app/GlobalContext"; // 👈 import provider
 
 const pacifico = Pacifico({
   weight: '400',
@@ -43,7 +43,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${pacifico.variable} antialiased`}
       >
-        {children}
+        <GlobalProvider>
+          {children}
+        </GlobalProvider>
       </body>
     </html>
   );

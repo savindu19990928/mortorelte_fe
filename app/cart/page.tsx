@@ -1,67 +1,112 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import Locked from '../locked';
+import { useGlobalState } from '../GlobalContext';
 
-const cartItems = [
-  {
-    id: 1,
-    name: 'Premium Brake Pads Set',
-    brand: 'BrakeMaster',
-    price: 89.99,
-    originalPrice: 109.99,
-    quantity: 2,
-    image: 'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=150&height=150&seq=bp1&orientation=squarish',
-    inStock: true
-  },
-  {
-    id: 2,
-    name: 'High Performance Air Filter',
-    brand: 'AirFlow Pro',
-    price: 45.99,
-    quantity: 1,
-    image: 'https://readdy.ai/api/search-image?query=High%20performance%20automotive%20air%20filter%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20engine%20air%20filter%20with%20pleated%20design%2C%20quality%20auto%20parts&width=150&height=150&seq=af1&orientation=squarish',
-    inStock: true
-  },
-  {
-    id: 3,
-    name: 'LED Headlight Bulbs H7',
-    brand: 'BrightBeam',
-    price: 129.99,
-    quantity: 1,
-    image: 'https://readdy.ai/api/search-image?query=LED%20automotive%20headlight%20bulbs%20H7%20type%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20bright%20LED%20car%20lights%2C%20premium%20auto%20electrical%20parts&width=150&height=150&seq=led1&orientation=squarish',
-    inStock: false
-  }
-];
+interface Product {
+  id: number;
+  slug: string;
+  name: string;
+  category: any;
+  price: number;
+  compare_price?: number;
+  primary_image?: any;
+  brand: any;
+  in_stock: boolean;
+}
+
+interface CartItem {
+  id: number;
+  quantity: number;
+  product: Product;
+}
 
 export default function CartPage() {
-  const [items, setItems] = useState(cartItems);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [subTotal, setSubTotal] = useState(0.00);
+  const [total, setTotal] = useState(0.00);
+  const [savings, setSavings] = useState(0);
+  const [updated, setUpdated] = useState(false);
+  const { setCartCount } = useGlobalState();
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setItems(items.filter(item => item.id !== id));
-    } else {
-      setItems(items.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      ));
+  const updateQuantity = async (product_id: number, quantity: number) => {
+    try {
+      const access_token = Cookies.get("access");
+      const res = await fetch(`https://admin.mortorelite.com/api/cart/items/1/`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id,
+          quantity: quantity,
+        }),
+      });
+      if (res.ok) {
+        setUpdated(!updated);
+        const cartData = await Locked();
+        setCartCount(cartData.cart_items_count);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
     }
   };
 
-  const removeItem = (id: number) => {
-    setItems(items.filter(item => item.id !== id));
+  const removeItem = async (id: number) => {
+    try {
+      const access_token = Cookies.get("access");
+      const res = await fetch(`https://admin.mortorelite.com/api/cart/items/${id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${access_token}`
+        }
+      });
+      if (res.ok) {
+        setUpdated(!updated);
+        const cartData = await Locked();
+        setCartCount(cartData.cart_items_count);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
   };
 
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const savings = items.reduce((sum, item) => {
-    const originalPrice = item.originalPrice || item.price;
-    return sum + ((originalPrice - item.price) * item.quantity);
-  }, 0);
-  const shipping = subtotal > 100 ? 0 : 9.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  useEffect(() => {
+    const access_token = Cookies.get("access");
+    fetch(
+      "https://admin.mortorelite.com/api/cart/",
+      {
+        headers: {
+          ...(access_token ? { Authorization: `Bearer ${access_token}` } : {}),
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data.items);
+        const sumComparePrice = data.items.reduce((sum: number, item: { product: any; quantity: number }) => {
+          const comparePrice = item.product?.compare_price;
+          const qty = item.quantity || 0;
+          return sum + (comparePrice ? Number(comparePrice) * qty : 0);
+        }, 0);
+        setSubTotal(sumComparePrice);
+        setTotal(data.total_amount);
+        setSavings(sumComparePrice - data.total_amount);
+      })
+      .catch((err) => console.error("Error fetching items:", err));
+  }, [updated])
 
   if (items.length === 0) {
     return (
@@ -74,7 +119,7 @@ export default function CartPage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
             <p className="text-gray-600 mb-8">Add some auto parts to get started!</p>
-            <Link 
+            <Link
               href="/parts"
               className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors duration-200 whitespace-nowrap"
             >
@@ -90,7 +135,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="bg-gray-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,8 +163,8 @@ export default function CartPage() {
                     {/* Product Image */}
                     <div className="flex-shrink-0">
                       <img
-                        src={item.image}
-                        alt={item.name}
+                        src={item.product.primary_image.image}
+                        alt={item.product.name}
                         className="w-20 h-20 object-cover object-top rounded-md"
                       />
                     </div>
@@ -129,12 +174,12 @@ export default function CartPage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">
-                            <Link href={`/parts/${item.id}`} className="hover:text-blue-600">
-                              {item.name}
+                            <Link href={`/parts/${item.product.slug}`} className="hover:text-blue-600">
+                              {item.product.name}
                             </Link>
                           </h3>
-                          <p className="text-sm text-gray-500 mt-1">{item.brand}</p>
-                          {!item.inStock && (
+                          <p className="text-sm text-gray-500 mt-1">{item.product.brand.name}</p>
+                          {!item.product.in_stock && (
                             <p className="text-sm text-red-600 mt-1 flex items-center">
                               <i className="ri-error-warning-line mr-1"></i>
                               Out of stock
@@ -153,9 +198,9 @@ export default function CartPage() {
                         {/* Quantity Selector */}
                         <div className="flex items-center border border-gray-300 rounded-md">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                             className="p-2 hover:bg-gray-50 cursor-pointer"
-                            disabled={!item.inStock}
+                            disabled={!item.product.in_stock}
                           >
                             <i className="ri-subtract-line"></i>
                           </button>
@@ -163,9 +208,9 @@ export default function CartPage() {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                             className="p-2 hover:bg-gray-50 cursor-pointer"
-                            disabled={!item.inStock}
+                            disabled={!item.product.in_stock}
                           >
                             <i className="ri-add-line"></i>
                           </button>
@@ -175,16 +220,16 @@ export default function CartPage() {
                         <div className="text-right">
                           <div className="flex items-center space-x-2">
                             <span className="text-lg font-bold text-gray-900">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${(item.product.price * item.quantity).toFixed(2)}
                             </span>
-                            {item.originalPrice && (
+                            {item.product.compare_price && (
                               <span className="text-sm text-gray-500 line-through">
-                                ${(item.originalPrice * item.quantity).toFixed(2)}
+                                ${(item.product.compare_price * item.quantity).toFixed(2)}
                               </span>
                             )}
                           </div>
                           <p className="text-sm text-gray-500 mt-1">
-                            ${item.price} each
+                            ${item.product.compare_price} each
                           </p>
                         </div>
                       </div>
@@ -210,11 +255,11 @@ export default function CartPage() {
           <div className="lg:w-80">
             <div className="bg-gray-50 rounded-lg p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="text-gray-600">SubTotal</span>
+                  <span className="font-medium">${subTotal.toFixed(2)}</span>
                 </div>
 
                 {savings > 0 && (
@@ -223,18 +268,11 @@ export default function CartPage() {
                     <span>-${savings.toFixed(2)}</span>
                   </div>
                 )}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">
-                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
-                  </span>
-                </div>
-
+                {/* 
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Tax</span>
                   <span className="font-medium">${tax.toFixed(2)}</span>
-                </div>
+                </div> */}
 
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex items-center justify-between">
@@ -243,16 +281,6 @@ export default function CartPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Free Shipping Notice */}
-              {subtotal < 100 && (
-                <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                  <p className="text-sm text-blue-800">
-                    <i className="ri-truck-line mr-1"></i>
-                    Add ${(100 - subtotal).toFixed(2)} more for free shipping!
-                  </p>
-                </div>
-              )}
 
               {/* Checkout Button */}
               <Link
@@ -276,7 +304,7 @@ export default function CartPage() {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

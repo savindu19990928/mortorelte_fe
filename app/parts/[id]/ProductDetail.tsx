@@ -7,6 +7,8 @@ import Auth from '../../auth';
 import Cookies from 'js-cookie';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
+import Locked from '@/app/locked';
+import { useGlobalState } from '../../GlobalContext';
 
 // const products = {
 //   '1': {
@@ -80,6 +82,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [inCart, setInCart] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const { setCartCount } = useGlobalState();
 
   const addToCart = async (product_id: number, quantity: number) => {
     if (quantity === 0) {
@@ -104,6 +107,8 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
       });
       if (res.ok) {
         setInCart(true);
+        const cartData = await Locked();
+        setCartCount(cartData.cart_items_count);
       } else {
         alert("Something went wrong. Please try again later.");
       }
@@ -132,7 +137,11 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         }),
       });
       if (res.ok) {
-        alert("Cart Updated!");
+        if (quantity === 0) {
+          setInCart(false);
+        }
+        const cartData = await Locked();
+        setCartCount(cartData.cart_items_count);
       } else {
         alert("Something went wrong. Please try again later.");
       }

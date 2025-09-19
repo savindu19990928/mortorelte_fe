@@ -3,6 +3,8 @@ import Cookies from 'js-cookie';
 import Link from 'next/link';
 import { useState } from 'react';
 import Auth from '../auth';
+import Locked from '../locked';
+import { useGlobalState } from '../GlobalContext';
 
 interface Product {
   id: number;
@@ -27,6 +29,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(product.is_wishlisted);
+  const { setCartCount } = useGlobalState();
 
   const addToCart = async (product_id: number) => {
     try {
@@ -48,6 +51,8 @@ export default function ProductCard({ product }: ProductCardProps) {
       });
       if (res.ok) {
         setIsAdded(true);
+        const cartData = await Locked();
+        setCartCount(cartData.cart_items_count);
       } else {
         alert("Something went wrong. Please try again later.");
       }

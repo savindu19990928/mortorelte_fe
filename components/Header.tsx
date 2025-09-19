@@ -3,12 +3,14 @@ import Cookies from 'js-cookie';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Auth from '../app/auth';
+import { useGlobalState } from '../app/GlobalContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { cartCount } = useGlobalState();
 
   useEffect(() => {
     setIsMounted(true);
@@ -85,7 +87,11 @@ export default function Header() {
                 <Link href="/cart" className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 relative">
                   <i className="ri-shopping-cart-line"></i>
                   <span className="hidden sm:block text-sm font-medium">Cart</span>
-                  {/* <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span> */}
+                  {(cartCount ?? 0) > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
                 </Link>
               </>
             ) : (
