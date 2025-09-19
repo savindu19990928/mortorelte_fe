@@ -3,6 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Auth from '../../auth';
+import Cookies from 'js-cookie';
 import Header from '../../../components/Header';
 import Footer from '../../../components/Footer';
 
@@ -69,21 +71,151 @@ interface Product {
   brand: any;
   inventory: any;
   in_stock: boolean;
+  in_cart: boolean;
+  is_wishlisted: boolean;
+  qyt_cart: number;
 }
 
 export default function ProductDetail({ productId }: ProductDetailProps) {
+  const [inCart, setInCart] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+
+  const addToCart = async (product_id: number, quantity: number) => {
+    if (quantity === 0) {
+      return;
+    }
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch("https://admin.mortorelite.com/api/cart/add/", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id,
+          quantity: quantity,
+        }),
+      });
+      if (res.ok) {
+        setInCart(true);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
+  const updateCart = async (product_id: number, quantity: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch(`https://admin.mortorelite.com/api/cart/items/1/`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id,
+          quantity: quantity,
+        }),
+      });
+      if (res.ok) {
+        alert("Cart Updated!");
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
+  const addToWishlist = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch("https://admin.mortorelite.com/api/wishlist/add/", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id
+        }),
+      });
+      if (res.ok) {
+        setIsWishlisted(true);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
+  const removeFromWishlist = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch(`https://admin.mortorelite.com/api/wishlist/remove/${product_id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${access_token}`
+        },
+      });
+      if (res.ok) {
+        setIsWishlisted(false);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
   const [product, setProduct] = useState<Product>();
   useEffect(() => {
-    fetch(`https://admin.mortorelite.com/api/products/${productId}/`)
+    const access_token = Cookies.get("access");
+
+    fetch(`https://admin.mortorelite.com/api/products/${productId}/`, {
+      headers:
+        access_token
+          ? { Authorization: `Bearer ${access_token}` }
+          : {}
+    })
       .then((res) => res.json())
       .then((data) => {
         setProduct(data);
+        setIsWishlisted(data.is_wishlisted);
+        setInCart(data.in_cart);
+        if (data.qyt_cart !== 0) {
+          setQuantity(data.qyt_cart); 
+        }
       })
       .catch((err) => console.error("Error fetching products:", err));
   }, []);
 
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
 
   if (!product) {
@@ -114,8 +246,6 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             <Link href="/" className="text-gray-500 hover:text-gray-700">Home</Link>
             <i className="ri-arrow-right-s-line text-gray-400"></i>
             <Link href="/parts" className="text-gray-500 hover:text-gray-700">Parts</Link>
-            <i className="ri-arrow-right-s-line text-gray-400"></i>
-            <Link href={`/parts?category=${encodeURIComponent(product.category.name)}`} className="text-gray-500 hover:text-gray-700">{product.category.name}</Link>
             <i className="ri-arrow-right-s-line text-gray-400"></i>
             <span className="text-gray-900 font-medium">{product.name}</span>
           </nav>
@@ -221,7 +351,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center border border-gray-300 rounded-md">
                   <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    onClick={() => setQuantity(Math.max(0, quantity - 1))}
                     className="p-2 hover:bg-gray-50 cursor-pointer"
                   >
                     <i className="ri-subtract-line"></i>
@@ -238,18 +368,34 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
                 </div>
 
                 <button
+                  onClick={() =>
+                    inCart
+                      ? updateCart(product.id, quantity)
+                      : addToCart(product.id, quantity)
+                  }
                   disabled={!product.in_stock}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-6 rounded-md font-medium transition-colors duration-200 whitespace-nowrap"
                 >
-                  Add to Cart
+                  {inCart ? 'Update cart ' : 'Add to Cart'}
                 </button>
               </div>
 
               <div className="mt-4 flex space-x-4">
-                <button className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md font-medium transition-colors duration-200 whitespace-nowrap">
-                  <i className="ri-heart-line mr-2"></i>
-                  Add to Wishlist
+                <button
+                  onClick={() =>
+                    isWishlisted
+                      ? removeFromWishlist(product.id)
+                      : addToWishlist(product.id)
+                  }
+                  className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md font-medium transition-colors duration-200 whitespace-nowrap"
+                >
+                  <i
+                    className={`mr-2 ${isWishlisted ? "ri-heart-fill text-red-500" : "ri-heart-line"
+                      }`}
+                  ></i>
+                  {isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                 </button>
+
                 {/* <button className="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md font-medium transition-colors duration-200 whitespace-nowrap">
                   <i className="ri-share-line mr-2"></i>
                   Share
@@ -261,7 +407,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
             <div className="mt-8">
               <h3 className="text-lg font-medium text-gray-900">Key Features</h3>
               <ul className="mt-4 space-y-2">
-                {product.attributes.map((attr:any, index:number) => (
+                {product.attributes.map((attr: any, index: number) => (
                   <li key={index} className="flex items-center text-sm text-gray-600">
                     <i className="ri-check-line text-green-500 mr-2"></i>
                     {attr.value}

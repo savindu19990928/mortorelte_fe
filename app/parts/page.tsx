@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
+import Auth from '../auth';
 
 export default function PartsPage() {
   const [maxPrice, setMaxPrice] = useState<number>(500);
@@ -30,18 +32,18 @@ export default function PartsPage() {
       })
       .catch((err) => console.error("Error fetching catagories:", err));
 
-    fetch("https://admin.mortorelite.com/api/products/?page=1")
-      .then((res) => res.json())
-      .then((data) => {
-        setProducts(Object.values(data.results));
-        if (data.results.length > 0) {
-          const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
-          setPriceRange([0, maxPriceRange]);
-          setMaxPrice(maxPriceRange);
-          setPageCount(Math.ceil(data.count / 20));
-        }
-      })
-      .catch((err) => console.error("Error fetching products:", err));
+    // fetch("https://admin.mortorelite.com/api/products/?page=1")
+    //   .then((res) => res.json())
+    //   .then((data) => {
+    //     setProducts(Object.values(data.results));
+    //     if (data.results.length > 0) {
+    //       const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
+    //       setPriceRange([0, maxPriceRange]);
+    //       setMaxPrice(maxPriceRange);
+    //       setPageCount(Math.ceil(data.count / 20));
+    //     }
+    //   })
+    //   .catch((err) => console.error("Error fetching products:", err));
   }, []);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -61,7 +63,10 @@ export default function PartsPage() {
 
   const filteredProducts = async (): Promise<any[]> => {
     try {
+      await Auth(true);
+      const access_token = Cookies.get("access");
       const params = new URLSearchParams();
+  
       if (selectedCategory !== "All") {
         params.append("category__name__icontains", selectedCategory);
       }
@@ -69,33 +74,43 @@ export default function PartsPage() {
         params.append("brands", selectedBrands.join(","));
       }
       if (showInStock) {
-        params.append("in_stock", 'true');
+        params.append("in_stock", "true");
       }
       params.append("price__gte", priceRange[0].toString());
       params.append("price__lte", priceRange[1].toString());
       params.append("page", page.toString());
-
+  
       const queries = params.toString();
-      const res = await fetch("https://admin.mortorelite.com/api/products/?" + queries);
+  
+      const res = await fetch(
+        "https://admin.mortorelite.com/api/products/?" + queries,
+        {
+          headers: {
+            ...(access_token ? { Authorization: `Bearer ${access_token}` } : {}),
+          },
+        }
+      );
+  
       const data = await res.json();
-
+  
       setProducts(Object.values(data.results));
       setPageCount(Math.ceil(data.count / 20));
-
+  
       if (data.results.length > 0) {
         const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
         setMaxPrice(maxPriceRange);
+  
         if (maxPriceRange < priceRange[1]) {
           setPriceRange([priceRange[0], maxPriceRange]);
         }
       }
-
+  
       return Object.values(data.results);
     } catch (err) {
       console.error("Error fetching products:", err);
       return [];
     }
-  };
+  };  
 
   useEffect(() => {
     filteredProducts();

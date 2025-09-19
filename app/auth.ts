@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';
 
-export default async function Auth() {
+export default async function Auth(isNotRedirectable?: boolean) {
     let refresh_token = Cookies.get('refresh');
     let access_token = Cookies.get('access');
     let remember = Cookies.get('remember');
@@ -63,7 +63,7 @@ export default async function Auth() {
                 }
                 return true;
             } else {
-                if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+                if ((!isNotRedirectable) && window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
                     window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
                 }
                 return false;

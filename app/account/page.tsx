@@ -207,6 +207,10 @@ export default function AccountPage() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
       const access_token = Cookies.get("access");
 
       let response;

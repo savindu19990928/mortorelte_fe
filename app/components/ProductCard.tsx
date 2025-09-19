@@ -1,7 +1,8 @@
-
 'use client';
-
+import Cookies from 'js-cookie';
 import Link from 'next/link';
+import { useState } from 'react';
+import Auth from '../auth';
 
 interface Product {
   id: number;
@@ -15,6 +16,8 @@ interface Product {
   primary_image?: any;
   brand: any;
   in_stock: boolean;
+  in_cart: boolean;
+  is_wishlisted: boolean;
 }
 
 interface ProductCardProps {
@@ -22,6 +25,90 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const [isAdded, setIsAdded] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(product.is_wishlisted);
+
+  const addToCart = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch("https://admin.mortorelite.com/api/cart/add/", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id,
+          quantity: 1,
+        }),
+      });
+      if (res.ok) {
+        setIsAdded(true);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
+  const addToWishlist = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch("https://admin.mortorelite.com/api/wishlist/add/", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id
+        }),
+      });
+      if (res.ok) {
+        setIsWishlisted(true);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
+  const removeFromWishlist = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch(`https://admin.mortorelite.com/api/wishlist/remove/${product_id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${access_token}`
+        },
+      });
+      if (res.ok) {
+        setIsWishlisted(false);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
   const discount = product.compare_price ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100) : 0;
 
   return (
@@ -46,7 +133,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-3 left-3 flex flex-col space-y-2">
           {product.compare_price && (
             <span className="bg-red-500 text-white px-2 py-1 text-xs font-medium rounded">
-              -{Math.round(((product.compare_price - product.price) / product.compare_price) * 100)}%
+              -{discount}%
             </span>
           )}
           {!product.in_stock && (
@@ -58,8 +145,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Quick Actions */}
         <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <button className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
-            <i className="ri-heart-line text-gray-600 hover:text-red-500"></i>
+          <button onClick={() =>
+            isWishlisted ? removeFromWishlist(product.id) : addToWishlist(product.id)
+          } className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
+            <i className={`ri-heart${isWishlisted ? '-fill text-red-500' : '-line text-gray-600 hover:text-red-500'}`}></i>
           </button>
         </div>
       </div>
@@ -102,10 +191,15 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Add to Cart */}
         <button
-          disabled={!product.in_stock}
+          onClick={() => { addToCart(product.id) }}
+          disabled={(!product.in_stock) || isAdded || product.in_cart}
           className="mt-3 w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
         >
-          {product.in_stock ? 'Add to Cart' : 'Out of Stock'}
+          {!product.in_stock
+            ? "Out of Stock"
+            : (isAdded || product.in_cart)
+              ? "Added to Cart"
+              : "Add to Cart"}
         </button>
       </div>
     </div>
