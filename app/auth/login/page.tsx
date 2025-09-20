@@ -200,7 +200,7 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
-
+{/* 
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -228,7 +228,7 @@ export default function LoginPage() {
                   <span className="ml-2">Facebook</span>
                 </button>
               </div>
-            </div>
+            </div> */}
           </form>
         </div>
       </div>

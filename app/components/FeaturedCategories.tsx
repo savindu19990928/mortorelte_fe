@@ -6,15 +6,31 @@ import { useEffect, useState } from 'react';
 
 export default function FeaturedCategories() {
   const [categories, setCategories] = useState<any[]>([]);
-  
+  const [isLoaded, setIsLoaded] = useState(false);
+
   useEffect(() => {
     fetch("https://admin.mortorelite.com/api/categories/")
       .then((res) => res.json())
       .then((data) => {
         setCategories(data.results.map((b: any) => b));
       })
-      .catch((err) => console.error("Error fetching catagories:", err));
+      .catch((err) => console.error("Error fetching catagories:", err))
+      .finally(() => {
+        setIsLoaded(true);
+      });
   }, []);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-16 bg-gray-50">
@@ -33,7 +49,7 @@ export default function FeaturedCategories() {
             <Link key={index} href={`/parts?category=${encodeURIComponent(category.name)}`} className="group cursor-pointer">
               <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                 <div className="relative h-48 overflow-hidden">
-                  <img 
+                  <img
                     src={category.image}
                     alt={category.name}
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
@@ -49,7 +65,7 @@ export default function FeaturedCategories() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                     {category.name}
                   </h3>
-                  <p className="text-gray-600 text-sm">{category.products_count} {category.products_count !== 1? 'parts' : 'part'}</p>
+                  <p className="text-gray-600 text-sm">{category.products_count} {category.products_count !== 1 ? 'parts' : 'part'}</p>
                 </div>
               </div>
             </Link>

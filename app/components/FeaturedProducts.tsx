@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
     fetch("https://admin.mortorelite.com/api/products/?featured=true")
@@ -12,8 +13,23 @@ export default function FeaturedProducts() {
       .then((data) => {
         setProducts(data.results.map((b: any) => b));
       })
-      .catch((err) => console.error("Error fetching catagories:", err));
+      .catch((err) => console.error("Error fetching catagories:", err))
+      .finally(() => {
+        setIsLoaded(true);
+      });
   }, []);
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-16 bg-white" data-product-shop>

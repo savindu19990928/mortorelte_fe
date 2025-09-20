@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Auth from '../app/auth';
 import { useGlobalState } from '../app/GlobalContext';
+import AutoPartsSearch from './AutoPartsSearch';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -46,16 +47,7 @@ export default function Header() {
 
           {/* Desktop Search */}
           <div className="hidden md:flex flex-1 max-w-md mx-4">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="ri-search-line text-gray-400 text-base"></i>
-              </div>
-              <input
-                type="text"
-                placeholder="Search auto parts..."
-                className="w-full pl-9 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              />
-            </div>
+            <AutoPartsSearch />
           </div>
 
           {/* Action Buttons */}
@@ -114,17 +106,7 @@ export default function Header() {
         {/* Mobile Search */}
         {isSearchOpen && (
           <div className="md:hidden py-4 border-t bg-white">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i className="ri-search-line text-gray-400 text-base"></i>
-              </div>
-              <input
-                type="text"
-                placeholder="Search auto parts..."
-                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                autoFocus
-              />
-            </div>
+            <AutoPartsSearch />
           </div>
         )}
 
