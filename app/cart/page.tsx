@@ -97,11 +97,12 @@ export default function CartPage() {
       .then((res) => res.json())
       .then((data) => {
         setItems(data.items);
-        const sumComparePrice = data.items.reduce((sum: number, item: { product: any; quantity: number }) => {
-          const comparePrice = item.product?.compare_price;
-          const qty = item.quantity || 0;
-          return sum + (comparePrice ? Number(comparePrice) * qty : 0);
-        }, 0);
+        const sumComparePrice =
+          data.items?.reduce((sum: number, item: { product: any; quantity: number }) => {
+            const comparePrice = item.product?.compare_price;
+            const qty = item.quantity || 0;
+            return sum + (comparePrice ? Number(comparePrice) * qty : 0);
+          }, 0) ?? 0;
         setSubTotal(sumComparePrice);
         setTotal(data.total_amount);
         setSavings(sumComparePrice - data.total_amount);

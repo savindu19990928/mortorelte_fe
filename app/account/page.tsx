@@ -4,33 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import TrackOrderModal from '../components/TrackOrderModal';
 import AddAddressModal from '../components/AddAddressModal';
 import Locked from '../locked';
 import Auth from '../auth';
 import Cookies from 'js-cookie';
-
-const orderHistory = [
-  {
-    id: 'ORD-001',
-    date: '2024-01-15',
-    status: 'Delivered',
-    total: 225.97,
-    items: [
-      { name: 'Premium Brake Pads Set', quantity: 2, price: 89.99 },
-      { name: 'High Performance Air Filter', quantity: 1, price: 45.99 }
-    ]
-  },
-  {
-    id: 'ORD-002',
-    date: '2024-01-10',
-    status: 'In Transit',
-    total: 129.99,
-    items: [
-      { name: 'LED Headlight Bulbs H7', quantity: 1, price: 129.99 }
-    ]
-  }
-];
 
 export default function AccountPage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -56,9 +33,9 @@ export default function AccountPage() {
   }
 
   const [activeTab, setActiveTab] = useState('orders');
-  const [trackingModal, setTrackingModal] = useState({ isOpen: false, orderId: '' });
   const [addressModal, setAddressModal] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
+  const [orderHistory, setOrderHistory] = useState<any[]>([]);
   const [password, setPassword] = useState({
     old_password: "",
     new_password: "",
@@ -73,6 +50,35 @@ export default function AccountPage() {
     profilePicture: null,
     profilePicturePreview: undefined
   });
+
+  const fetchOrders = async () => {
+    try {
+      const auth = await Auth();
+      let access_token = Cookies.get('access');
+      if (auth) {
+        const response = await fetch("https://admin.mortorelite.com/api/orders/", {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${access_token}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setOrderHistory(data.results);
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+          window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
+        }
+        return false;
+      }
+    } catch (error) {
+      return false;
+    } finally {
+      setIsLoaded(true);
+    }
+  }
 
   const fetchAddress = async () => {
     try {
@@ -98,8 +104,6 @@ export default function AccountPage() {
       }
     } catch (error) {
       return false;
-    } finally {
-      setIsLoaded(true);
     }
   }
 
@@ -120,6 +124,7 @@ export default function AccountPage() {
       .catch(err => console.error(err))
       .finally(() => {
         fetchAddress();
+        fetchOrders();
       });
   }, []);
 
@@ -127,10 +132,6 @@ export default function AccountPage() {
     Cookies.remove('refresh');
     Cookies.remove('remember');
     Cookies.remove('access');
-  };
-
-  const handleTrackOrder = (orderId: string) => {
-    setTrackingModal({ isOpen: true, orderId });
   };
 
   const handleAddAddress = async (address: any) => {
@@ -390,37 +391,31 @@ export default function AccountPage() {
                     <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-medium text-gray-900">Order #{order.id}</h3>
-                          <p className="text-sm text-gray-500">Placed on {order.date}</p>
+                          <h3 className="text-lg font-medium text-gray-900">Order #{order.order_number}</h3>
+                          <p className="text-sm text-gray-500">Placed on {order.created_at}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900">${order.total}</p>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          <p className="text-lg font-bold text-gray-900">${order.total_amount}</p>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${order.status_display === 'Delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                            {order.status}
+                            {order.status_display}
                           </span>
                         </div>
                       </div>
 
                       <div className="space-y-3">
-                        {order.items.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between">
+                        {order.items.map((item : any) => (
+                          <div key={item.id} className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-gray-900">{item.name}</p>
+                              <p className="font-medium text-gray-900">{item.product.name}</p>
                               <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                             </div>
-                            <p className="font-medium text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="font-medium text-gray-900">${(item.total_price)}</p>
                           </div>
                         ))}
                       </div>
 
                       <div className="mt-4 flex space-x-3">
-                        <button
-                          onClick={() => handleTrackOrder(order.id)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap"
-                        >
-                          Track Order
-                        </button>
                         <button className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap">
                           Reorder
                         </button>
@@ -629,12 +624,6 @@ export default function AccountPage() {
       </div>
 
       {/* Modals */}
-      <TrackOrderModal
-        isOpen={trackingModal.isOpen}
-        onClose={() => setTrackingModal({ isOpen: false, orderId: '' })}
-        orderId={trackingModal.orderId}
-      />
-
       <AddAddressModal
         isOpen={addressModal}
         onClose={() => setAddressModal(false)}
