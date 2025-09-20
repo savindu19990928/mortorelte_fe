@@ -54,6 +54,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     try {
       const auth = await Auth();
       if (!auth) {
+        window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
         return;
       }
       const access_token = Cookies.get("access");
@@ -118,6 +119,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
     try {
       const auth = await Auth();
       if (!auth) {
+        window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
         return;
       }
       const access_token = Cookies.get("access");
