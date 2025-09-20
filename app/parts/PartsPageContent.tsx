@@ -96,11 +96,10 @@ export default function PartsPage() {
       setPCount(data.count);
 
       if (data.results.length > 0) {
-        const maxPriceRange = Math.max(...data.results.map((p: any) => p.price));
-        setMaxPrice(maxPriceRange);
+        setMaxPrice(data.max_price);
 
-        if (maxPriceRange < priceRange[1]) {
-          setPriceRange([priceRange[0], maxPriceRange]);
+        if (data.max_price < priceRange[1]) {
+          setPriceRange([priceRange[0], data.max_price]);
         }
       }
       return [];
