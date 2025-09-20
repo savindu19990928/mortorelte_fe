@@ -35,6 +35,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     try {
       const auth = await Auth();
       if (!auth) {
+        window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
         return;
       }
       const access_token = Cookies.get("access");
@@ -66,6 +67,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     try {
       const auth = await Auth();
       if (!auth) {
+        window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
         return;
       }
       const access_token = Cookies.get("access");
@@ -94,6 +96,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     try {
       const auth = await Auth();
       if (!auth) {
+        window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
         return;
       }
       const access_token = Cookies.get("access");
