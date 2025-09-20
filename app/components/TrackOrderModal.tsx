@@ -71,9 +71,9 @@ export default function TrackOrderModal({ isOpen, onClose, orderId }: TrackOrder
                     <p className="text-sm text-blue-600">
                       {tracking.status === 'Delivered' ? 'Delivered on' : 'Estimated Delivery'}
                     </p>
-                    <p className="text-lg font-semibold text-blue-900">
+                    {/* <p className="text-lg font-semibold text-blue-900">
                       {tracking.deliveryDate || tracking.estimatedDelivery}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               </div>
