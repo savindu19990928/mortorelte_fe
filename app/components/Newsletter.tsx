@@ -6,12 +6,23 @@ export default function Newsletter() {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email) {
-      setIsSubscribed(true);
-      setEmail('');
-      setTimeout(() => setIsSubscribed(false), 3000);
+      const res = await fetch("https://admin.mortorelite.com/api/newsletter/subscribe/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email
+        }),
+      });
+      if (res.ok) {
+        setIsSubscribed(true);
+        setEmail('');
+        setTimeout(() => setIsSubscribed(false), 3000);
+      }
     }
   };
 

@@ -59,7 +59,7 @@ export default function AboutPage() {
             </div>
             <div className="relative">
               <img
-                src="https://readdy.ai/api/search-image?query=Professional%20automotive%20parts%20warehouse%20with%20organized%20shelves%20full%20of%20car%20parts%2C%20modern%20inventory%20management%20system%2C%20clean%20industrial%20setting%2C%20automotive%20supply%20chain%20facility&width=600&height=400&seq=about2&orientation=landscape"
+                src="https://readdy.ai/api/search-image?query=modern%20automotive%20garage%20workshop%20with%20professional%20car%20repair%20equipment%2C%20tools%2C%20and%20auto%20parts%20displayed%20on%20shelves%2C%20clean%20industrial%20setting%20with%20excellent%20lighting%2C%20high-tech%20automotive%20service%20center%20atmosphere%2C%20professional%20mechanic%20workspace%20with%20organized%20tool%20storage&width=1200&height=600&seq=hero1&orientation=landscape"
                 alt="Motor Elite Warehouse"
                 className="rounded-lg shadow-lg object-cover w-full h-96"
               />

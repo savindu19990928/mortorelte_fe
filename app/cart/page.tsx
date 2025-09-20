@@ -33,6 +33,7 @@ export default function CartPage() {
   const [savings, setSavings] = useState(0);
   const [updated, setUpdated] = useState(false);
   const { setCartCount } = useGlobalState();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const updateQuantity = async (product_id: number, quantity: number) => {
     try {
@@ -105,8 +106,23 @@ export default function CartPage() {
         setTotal(data.total_amount);
         setSavings(sumComparePrice - data.total_amount);
       })
-      .catch((err) => console.error("Error fetching items:", err));
+      .catch((err) => console.error("Error fetching items:", err))
+      .finally(() => {
+        setIsLoaded(true);
+      });
   }, [updated])
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

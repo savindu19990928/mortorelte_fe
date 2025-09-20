@@ -2,8 +2,20 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function Footer() {
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("https://admin.mortorelite.com/api/categories/")
+      .then((res) => res.json())
+      .then((data) => {
+        setCategories(data.results.map((b: any) => b.name));
+      })
+      .catch((err) => console.error("Error fetching catagories:", err));
+  }, []);
+
   return (
     <footer className="bg-gray-900 text-white py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -48,11 +60,9 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold text-lg mb-4">Categories</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-gray-300 hover:text-white text-sm">Engine Parts</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white text-sm">Brakes</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white text-sm">Suspension</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white text-sm">Electrical</a></li>
-              <li><a href="#" className="text-gray-300 hover:text-white text-sm">Body Parts</a></li>
+              {categories.slice(0, 5).map((category) => (
+                <li key={category}><a href={`/parts/?category=${encodeURIComponent(category)}`} className="text-gray-300 hover:text-white text-sm">{category}</a></li>
+              ))}
             </ul>
           </div>
 

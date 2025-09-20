@@ -141,11 +141,6 @@ export default function ProductCard({ product }: ProductCardProps) {
               -{discount}%
             </span>
           )}
-          {!product.in_stock && (
-            <span className="bg-gray-500 text-white px-2 py-1 text-xs font-medium rounded">
-              Out of Stock
-            </span>
-          )}
         </div>
 
         {/* Quick Actions */}

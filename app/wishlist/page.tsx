@@ -1,44 +1,130 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
+import Locked from '@/app/locked';
+import Cookies from 'js-cookie';
+import { useGlobalState } from '../GlobalContext';
+import Auth from '../auth';
 
-const wishlistItems = [
-  {
-    id: 1,
-    name: 'Premium Brake Pad Set',
-    brand: 'Brembo',
-    price: 89.99,
-    originalPrice: 119.99,
-    image: 'https://readdy.ai/api/search-image?query=high-quality%20automotive%20brake%20pads%2C%20professional%20product%20photography%2C%20clean%20white%20background%2C%20premium%20brake%20pad%20components%2C%20detailed%20automotive%20brake%20system%20parts&width=200&height=200&seq=wish1&orientation=squarish',
-    inStock: true
-  },
-  {
-    id: 2,
-    name: 'LED Headlight Bulbs',
-    brand: 'Philips',
-    price: 129.99,
-    originalPrice: 159.99,
-    image: 'https://readdy.ai/api/search-image?query=automotive%20LED%20headlight%20bulbs%20set%2C%20professional%20product%20photography%2C%20clean%20white%20background%2C%20modern%20car%20lighting%20components%2C%20LED%20automotive%20bulbs&width=200&height=200&seq=wish2&orientation=squarish',
-    inStock: true
-  },
-  {
-    id: 3,
-    name: 'Shock Absorber Set',
-    brand: 'Monroe',
-    price: 189.99,
-    originalPrice: 229.99,
-    image: 'https://readdy.ai/api/search-image?query=automotive%20shock%20absorber%20struts%2C%20professional%20product%20photography%2C%20clean%20white%20background%2C%20car%20suspension%20components%2C%20shock%20absorber%20parts&width=200&height=200&seq=wish3&orientation=squarish',
-    inStock: false
-  }
-];
+interface Product {
+  id: number;
+  slug: string;
+  name: string;
+  category: any;
+  price: number;
+  compare_price?: number;
+  primary_image?: any;
+  brand: any;
+  in_stock: boolean;
+  in_cart: boolean;
+}
+
+interface WishlistItem {
+  id: number;
+  product: Product;
+}
 
 export default function WishlistPage() {
+  const [updated, setUpdated] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { setCartCount } = useGlobalState();
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+
+  const addToCart = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch("https://admin.mortorelite.com/api/cart/add/", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          product_id: product_id,
+          quantity: 1,
+        }),
+      });
+      if (res.ok) {
+        const cartData = await Locked();
+        setCartCount(cartData.cart_items_count);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    } finally {
+      setUpdated(!updated);
+    }
+  };
+
+  const removeFromWishlist = async (product_id: number) => {
+    try {
+      const auth = await Auth();
+      if (!auth) {
+        return;
+      }
+      const access_token = Cookies.get("access");
+      const res = await fetch(`https://admin.mortorelite.com/api/wishlist/remove/${product_id}/`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${access_token}`
+        },
+      });
+      if (res.ok) {
+        setUpdated(!updated);
+      } else {
+        alert("Something went wrong. Please try again later.");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const access_token = Cookies.get("access");
+    fetch(
+      "https://admin.mortorelite.com/api/wishlist/",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setWishlistItems(data.items);
+      })
+      .catch((err) => console.error("Error fetching items:", err))
+      .finally(() => {
+        setIsLoaded(true);
+      });
+  }, [updated])
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -53,14 +139,11 @@ export default function WishlistPage() {
                 {/* Image */}
                 <div className="relative">
                   <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-48 object-cover object-top"
+                    src={item.product.primary_image.image}
+                    alt={item.product.name}
+                    className="w-full h-full object-cover object-top"
                   />
-                  <button className="absolute top-3 right-3 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
-                    <i className="ri-heart-fill text-red-500"></i>
-                  </button>
-                  {!item.inStock && (
+                  {!item.product.in_stock && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <span className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                         Out of Stock
@@ -72,36 +155,36 @@ export default function WishlistPage() {
                 {/* Content */}
                 <div className="p-4">
                   <div className="mb-2">
-                    <span className="text-xs text-blue-600 font-medium">{item.brand}</span>
+                    <span className="text-xs text-blue-600 font-medium">{item.product.brand.name}</span>
                   </div>
-                  
-                  <Link href={`/parts/${item.id}`}>
+
+                  <Link href={`/parts/${item.product.slug}`}>
                     <h3 className="text-sm font-medium text-gray-900 hover:text-blue-600 line-clamp-2 cursor-pointer mb-3">
-                      {item.name}
+                      {item.product.name}
                     </h3>
                   </Link>
 
                   {/* Price */}
                   <div className="flex items-center space-x-2 mb-3">
-                    <span className="text-lg font-bold text-gray-900">${item.price}</span>
-                    {item.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">${item.originalPrice}</span>
+                    <span className="text-lg font-bold text-gray-900">${item.product.price}</span>
+                    {item.product.compare_price && (
+                      <span className="text-sm text-gray-500 line-through">${item.product.compare_price}</span>
                     )}
                   </div>
 
                   {/* Actions */}
                   <div className="flex space-x-2">
-                    <button 
-                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                        item.inStock 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer' 
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                      disabled={!item.inStock}
+                    <button
+                      onClick={() => { addToCart(item.product.id) }}
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${(item.product.in_stock) && (!item.product.in_cart)
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                      disabled={(!item.product.in_stock) || item.product.in_cart}
                     >
-                      Add to Cart
+                      {item.product.in_cart ? 'Added to Cart' : 'Add to Cart'}
                     </button>
-                    <button className="w-10 h-10 border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
+                    <button onClick={() => { removeFromWishlist(item.product.id) }} className="w-10 h-10 border border-gray-300 rounded-md flex items-center justify-center hover:bg-gray-50 cursor-pointer">
                       <i className="ri-delete-bin-line text-gray-500"></i>
                     </button>
                   </div>
@@ -116,8 +199,8 @@ export default function WishlistPage() {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Your wishlist is empty</h3>
             <p className="text-gray-600 mb-6">Start adding items you love to your wishlist</p>
-            <Link 
-              href="/parts" 
+            <Link
+              href="/parts"
               className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer"
             >
               Browse Parts

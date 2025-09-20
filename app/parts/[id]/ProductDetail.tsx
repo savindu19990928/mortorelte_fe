@@ -10,44 +10,6 @@ import Footer from '../../../components/Footer';
 import Locked from '@/app/locked';
 import { useGlobalState } from '../../GlobalContext';
 
-// const products = {
-//   '1': {
-//     id: 1,
-//     name: 'Premium Brake Pads Set',
-//     category: 'Brake System',
-//     price: 89.99,
-//     price: 109.99,
-//     rating: 4.8,
-//     reviews: 156,
-//     images: [
-//       'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=600&height=600&seq=bp1&orientation=squarish',
-//       'https://readdy.ai/api/search-image?query=Automotive%20brake%20pads%20close%20up%20detail%20view%20showing%20friction%20material%20and%20backing%20plate%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20quality%20brake%20components&width=600&height=600&seq=bp2&orientation=squarish',
-//       'https://readdy.ai/api/search-image?query=Brake%20pads%20installation%20guide%20and%20components%20layout%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20auto%20parts%20with%20accessories%20and%20hardware&width=600&height=600&seq=bp3&orientation=squarish'
-//     ],
-//     brand: 'BrakeMaster',
-//     sku: 'BM-BP-001',
-//     inStock: true,
-//     stockQuantity: 25,
-//     description: 'Premium ceramic brake pads designed for superior stopping power and reduced noise. Features advanced friction material that provides consistent performance in all weather conditions.',
-//     features: [
-//       'Ceramic friction material for quiet operation',
-//       'Superior heat dissipation',
-//       'Extended pad life',
-//       'OEM quality fit and finish',
-//       'Low dust formula',
-//       'Includes brake hardware kit'
-//     ],
-//     specifications: {
-//       'Material': 'Ceramic',
-//       'Position': 'Front',
-//       'Warranty': '2 Years',
-//       'Weight': '2.5 lbs',
-//       'Dimensions': '12" x 8" x 3"',
-//       'Compatibility': 'Most 2015+ vehicles'
-//     }
-//   }
-// };
-
 interface ProductDetailProps {
   productId: string;
 }
@@ -83,6 +45,7 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const { setCartCount } = useGlobalState();
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const addToCart = async (product_id: number, quantity: number) => {
     if (quantity === 0) {
@@ -218,14 +181,29 @@ export default function ProductDetail({ productId }: ProductDetailProps) {
         setIsWishlisted(data.is_wishlisted);
         setInCart(data.in_cart);
         if (data.qyt_cart !== 0) {
-          setQuantity(data.qyt_cart); 
+          setQuantity(data.qyt_cart);
         }
       })
-      .catch((err) => console.error("Error fetching products:", err));
+      .catch((err) => console.error("Error fetching products:", err))
+      .finally(() => {
+        setIsLoaded(true);
+      });
   }, []);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (

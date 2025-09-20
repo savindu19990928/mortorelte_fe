@@ -33,6 +33,8 @@ const orderHistory = [
 ];
 
 export default function AccountPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   type UserInfo = {
     firstName: string;
     lastName: string;
@@ -96,6 +98,8 @@ export default function AccountPage() {
       }
     } catch (error) {
       return false;
+    } finally {
+      setIsLoaded(true);
     }
   }
 
@@ -113,8 +117,10 @@ export default function AccountPage() {
           }));
         }
       })
-      .catch(err => console.error(err));
-    fetchAddress();
+      .catch(err => console.error(err))
+      .finally(() => {
+        fetchAddress();
+      });
   }, []);
 
   const handleSignOut = () => {
@@ -297,6 +303,18 @@ export default function AccountPage() {
     { id: 'addresses', name: 'Addresses', icon: 'ri-map-pin-line' },
     { id: 'settings', name: 'Settings', icon: 'ri-settings-line' }
   ];
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
