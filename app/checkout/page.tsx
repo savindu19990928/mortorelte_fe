@@ -27,6 +27,7 @@ const cartItems = [
 
 export default function CheckoutPage() {
   const [step, setStep] = useState(1);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     // Shipping Information
     firstName: '',
@@ -38,7 +39,8 @@ export default function CheckoutPage() {
     state: '',
     zipCode: '',
     country: 'United States',
-    
+    selectedAddress: '',
+
     // Billing Information
     billingDifferent: false,
     billingFirstName: '',
@@ -48,14 +50,14 @@ export default function CheckoutPage() {
     billingState: '',
     billingZipCode: '',
     billingCountry: 'United States',
-    
+
     // Payment Information
     paymentMethod: 'card',
     cardNumber: '',
     expiryDate: '',
     cvv: '',
     nameOnCard: '',
-    
+
     // Order Notes
     orderNotes: ''
   });
@@ -84,7 +86,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       {/* Breadcrumb */}
       <div className="bg-gray-50 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -101,36 +103,67 @@ export default function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
+          {/* Desktop / Tablet stepper */}
+          <div className="hidden md:flex items-center justify-center space-x-8">
             {[
               { step: 1, name: 'Shipping', icon: 'ri-truck-line' },
               { step: 2, name: 'Payment', icon: 'ri-bank-card-line' },
               { step: 3, name: 'Review', icon: 'ri-file-list-line' }
             ].map((item, index) => (
               <div key={item.step} className="flex items-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  step >= item.step 
-                    ? 'bg-blue-600 border-blue-600 text-white' 
-                    : 'border-gray-300 text-gray-500'
-                }`}>
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${step >= item.step
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'border-gray-300 text-gray-500'
+                    }`}
+                >
                   {step > item.step ? (
                     <i className="ri-check-line"></i>
                   ) : (
                     <i className={item.icon}></i>
                   )}
                 </div>
-                <span className={`ml-2 text-sm font-medium ${
-                  step >= item.step ? 'text-blue-600' : 'text-gray-500'
-                }`}>
+                <span
+                  className={`ml-2 text-sm font-medium ${step >= item.step ? 'text-blue-600' : 'text-gray-500'
+                    }`}
+                >
                   {item.name}
                 </span>
+
                 {index < 2 && (
-                  <div className={`ml-8 w-16 h-px ${
-                    step > item.step ? 'bg-blue-600' : 'bg-gray-300'
-                  }`}></div>
+                  <div
+                    className={`ml-8 w-16 h-px ${step > item.step ? 'bg-blue-600' : 'bg-gray-300'
+                      }`}
+                  ></div>
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Mobile - only current step */}
+          <div className="flex md:hidden items-center justify-center">
+            {(() => {
+              const steps = [
+                { step: 1, name: 'Shipping', icon: 'ri-truck-line' },
+                { step: 2, name: 'Payment', icon: 'ri-bank-card-line' },
+                { step: 3, name: 'Review', icon: 'ri-file-list-line' }
+              ];
+
+              const current = steps.find((item) => item.step === step);
+
+              if (!current) return null; // <-- Fix TypeScript complaint
+
+              return (
+                <div className="flex items-center">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 bg-blue-600 border-blue-600 text-white">
+                    <i className={current.icon}></i>
+                  </div>
+                  <span className="ml-2 text-sm font-medium text-blue-600">
+                    {current.name}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         </div>
 
@@ -142,109 +175,145 @@ export default function CheckoutPage() {
               {step === 1 && (
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Shipping Information</h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                      <input
-                        type="text"
-                        name="firstName"
-                        required
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        required
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        required
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                      <input
-                        type="text"
-                        name="address"
-                        required
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                      <input
-                        type="text"
-                        name="city"
-                        required
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                      <input
-                        type="text"
-                        name="state"
-                        required
-                        value={formData.state}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
-                      <input
-                        type="text"
-                        name="zipCode"
-                        required
-                        value={formData.zipCode}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                      <select
-                        name="country"
-                        value={formData.country}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8"
-                      >
-                        <option value="United States">United States</option>
-                        <option value="Canada">Canada</option>
-                        <option value="Mexico">Mexico</option>
-                      </select>
-                    </div>
+
+                  {/* Saved addresses dropdown */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Shipping Address</label>
+                    <select
+                      name="selectedAddress"
+                      value={formData.selectedAddress}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "new") {
+                          setFormData({ ...formData, selectedAddress: "new" });
+                        } else {
+                          const chosen = savedAddresses.find(addr => addr.id === value);
+                          if (chosen) {
+                            setFormData({
+                              ...formData,
+                              selectedAddress: value,
+                              ...chosen, // auto-fill formData with saved address
+                            });
+                          }
+                        }
+                      }}
+                      className="w-full px-3 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">-- Select Address --</option>
+                      {savedAddresses.map((address) => (
+                        <option key={address.id} value={address.id}>
+                          {address.firstName} {address.lastName}, {address.city}, {address.country}
+                        </option>
+                      ))}
+                      <option value="new">+ Add New Address</option>
+                    </select>
                   </div>
+
+                  {/* Only show address form if "new" is selected */}
+                  {formData.selectedAddress === "new" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input
+                          type="text"
+                          name="firstName"
+                          required
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input
+                          type="text"
+                          name="lastName"
+                          required
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <input
+                          type="text"
+                          name="address"
+                          required
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                        <input
+                          type="text"
+                          name="city"
+                          required
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                        <input
+                          type="text"
+                          name="state"
+                          required
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                        <input
+                          type="text"
+                          name="zipCode"
+                          required
+                          value={formData.zipCode}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+                        <select
+                          name="country"
+                          value={formData.country}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8"
+                        >
+                          <option value="United States">United States</option>
+                          <option value="Canada">Canada</option>
+                          <option value="Mexico">Mexico</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-6 flex justify-end">
                     <button
@@ -258,11 +327,12 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+
               {/* Step 2: Payment Information */}
               {step === 2 && (
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Information</h2>
-                  
+
                   {/* Payment Method Selection */}
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-3">Payment Method</label>
@@ -276,9 +346,8 @@ export default function CheckoutPage() {
                           onChange={handleInputChange}
                           className="sr-only"
                         />
-                        <div className={`p-4 border-2 rounded-lg text-center ${
-                          formData.paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                        }`}>
+                        <div className={`p-4 border-2 rounded-lg text-center ${formData.paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                          }`}>
                           <i className="ri-bank-card-line text-2xl mb-2"></i>
                           <p className="font-medium">Credit Card</p>
                         </div>
@@ -287,32 +356,15 @@ export default function CheckoutPage() {
                         <input
                           type="radio"
                           name="paymentMethod"
-                          value="paypal"
-                          checked={formData.paymentMethod === 'paypal'}
+                          value="Cash on Delivery"
+                          checked={formData.paymentMethod === 'Cash on Delivery'}
                           onChange={handleInputChange}
                           className="sr-only"
                         />
-                        <div className={`p-4 border-2 rounded-lg text-center ${
-                          formData.paymentMethod === 'paypal' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                        }`}>
-                          <i className="ri-paypal-line text-2xl mb-2"></i>
-                          <p className="font-medium">PayPal</p>
-                        </div>
-                      </label>
-                      <label className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="apple"
-                          checked={formData.paymentMethod === 'apple'}
-                          onChange={handleInputChange}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 border-2 rounded-lg text-center ${
-                          formData.paymentMethod === 'apple' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
-                        }`}>
-                          <i className="ri-apple-line text-2xl mb-2"></i>
-                          <p className="font-medium">Apple Pay</p>
+                        <div className={`p-4 border-2 rounded-lg text-center ${formData.paymentMethod === 'Cash on Delivery' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                          }`}>
+                          <i className="ri-cash-line text-2xl mb-2"></i>
+                          <p className="font-medium">Cash on Delivery</p>
                         </div>
                       </label>
                     </div>
@@ -373,7 +425,7 @@ export default function CheckoutPage() {
                       onClick={() => setStep(1)}
                       className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-6 rounded-md font-medium transition-colors duration-200 whitespace-nowrap"
                     >
-                      Back to Shipping
+                      Back
                     </button>
                     <button
                       type="button"
@@ -390,7 +442,7 @@ export default function CheckoutPage() {
               {step === 3 && (
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-6">Review Your Order</h2>
-                  
+
                   {/* Order Items */}
                   <div className="mb-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Order Items</h3>
@@ -444,7 +496,7 @@ export default function CheckoutPage() {
                       onClick={() => setStep(2)}
                       className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-6 rounded-md font-medium transition-colors duration-200 whitespace-nowrap"
                     >
-                      Back to Payment
+                      Back
                     </button>
                     <button
                       type="submit"
@@ -462,7 +514,7 @@ export default function CheckoutPage() {
           <div className="lg:w-80">
             <div className="bg-gray-50 rounded-lg p-6 sticky top-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Summary</h2>
-              
+
               {/* Items */}
               <div className="space-y-3 mb-4">
                 {cartItems.map((item) => (
@@ -482,7 +534,7 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="space-y-3 border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Subtotal</span>
@@ -519,7 +571,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

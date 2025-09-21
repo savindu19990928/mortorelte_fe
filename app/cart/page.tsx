@@ -236,16 +236,16 @@ export default function CartPage() {
                         {/* Price */}
                         <div className="text-right">
                           <div className="flex items-center space-x-2">
-                            <span className="text-lg font-bold text-gray-900">
+                            <span className="text-sm md:text-lg font-bold text-gray-900">
                               ${(item.product.price * item.quantity).toFixed(2)}
                             </span>
                             {item.product.compare_price && (
-                              <span className="text-sm text-gray-500 line-through">
+                              <span className="hidden md:block text-sm text-gray-500 line-through">
                                 ${(item.product.compare_price * item.quantity).toFixed(2)}
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 mt-1">
+                          <p className="hidden md:block text-sm text-gray-500 mt-1">
                             ${item.product.compare_price} each
                           </p>
                         </div>
