@@ -416,9 +416,9 @@ export default function AccountPage() {
                       </div>
 
                       <div className="mt-4 flex space-x-3">
-                        <button className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap">
+                        {/* <button className="border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-200 whitespace-nowrap">
                           Report
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   ))}
