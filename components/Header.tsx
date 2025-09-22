@@ -5,13 +5,14 @@ import Link from 'next/link';
 import Auth from '../app/auth';
 import { useGlobalState } from '../app/GlobalContext';
 import AutoPartsSearch from './AutoPartsSearch';
+import CartItemCount from '../app/cart-count';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { cartCount } = useGlobalState();
+  const { cartCount, setCartCount } = useGlobalState();
 
   useEffect(() => {
     setIsMounted(true);
@@ -20,6 +21,12 @@ export default function Header() {
     if (user) {
       setIsLoggedIn(true);
     }
+  }, []);
+
+  useEffect(() => {
+    CartItemCount().then((data) => {
+      setCartCount(data);
+    })
   }, []);
 
   if (!isMounted) return null;
