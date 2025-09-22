@@ -1,55 +1,45 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import Auth from '../auth';
+import Cookies from 'js-cookie';
 
-const cartItems = [
-  {
-    id: 1,
-    name: 'Premium Brake Pads Set',
-    brand: 'BrakeMaster',
-    price: 89.99,
-    quantity: 2,
-    image: 'https://readdy.ai/api/search-image?query=Premium%20automotive%20brake%20pads%20set%20with%20modern%20packaging%20on%20clean%20white%20background%2C%20professional%20product%20photography%2C%20high%20quality%20auto%20parts%2C%20detailed%20view%20showing%20brake%20pad%20material%20and%20construction&width=80&height=80&seq=bp1&orientation=squarish'
-  },
-  {
-    id: 2,
-    name: 'High Performance Air Filter',
-    brand: 'AirFlow Pro',
-    price: 45.99,
-    quantity: 1,
-    image: 'https://readdy.ai/api/search-image?query=High%20performance%20automotive%20air%20filter%20with%20clean%20white%20background%2C%20professional%20product%20photography%2C%20engine%20air%20filter%20with%20pleated%20design%2C%20quality%20auto%20parts&width=80&height=80&seq=af1&orientation=squarish'
-  }
-];
+interface Product {
+  id: number;
+  slug: string;
+  name: string;
+  category: any;
+  price: number;
+  compare_price?: number;
+  primary_image?: any;
+  brand: any;
+  in_stock: boolean;
+}
+
+interface CartItem {
+  id: number;
+  quantity: number;
+  product: Product;
+}
 
 export default function CheckoutPage() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [subTotal, setSubTotal] = useState(0.00);
   const [step, setStep] = useState(1);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [formData, setFormData] = useState({
     // Shipping Information
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
+    street: '',
     city: '',
     state: '',
-    zipCode: '',
-    country: 'United States',
+    postal_code: '',
+    country: '',
     selectedAddress: '',
-
-    // Billing Information
-    billingDifferent: false,
-    billingFirstName: '',
-    billingLastName: '',
-    billingAddress: '',
-    billingCity: '',
-    billingState: '',
-    billingZipCode: '',
-    billingCountry: 'United States',
 
     // Payment Information
     paymentMethod: 'card',
@@ -62,10 +52,55 @@ export default function CheckoutPage() {
     orderNotes: ''
   });
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 100 ? 0 : 9.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const fetchAddress = async () => {
+    try {
+      const auth = await Auth();
+      let access_token = Cookies.get('access');
+      if (auth) {
+        const response = await fetch("https://admin.mortorelite.com/api/addresses/", {
+          method: "GET",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` }
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setSavedAddresses(data.results.filter((addr: any) => addr.type === "shipping"));
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+          window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
+        }
+        return false;
+      }
+    } catch (error) {
+      return false;
+    } finally {
+      setIsLoaded(true);
+    }
+  }
+
+  useEffect(() => {
+    const access_token = Cookies.get("access");
+    fetch(
+      "https://admin.mortorelite.com/api/cart/",
+      {
+        headers: {
+          ...(access_token ? { Authorization: `Bearer ${access_token}` } : {}),
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setCartItems(data.items);
+        setSubTotal(data.total_amount);
+      })
+      .catch((err) => console.error("Error fetching items:", err))
+      .finally(() => {
+        fetchAddress();
+      });
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -77,11 +112,87 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    console.log('Order submitted:', formData);
+  const handleAddAddress = async (address: any) => {
+    try {
+      const auth = await Auth();
+      let access_token = Cookies.get('access');
+      if (auth) {
+        const response = await fetch("https://admin.mortorelite.com/api/addresses/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+          body: JSON.stringify({
+            type: "shipping",
+            street: address.street,
+            city: address.city,
+            state: address.state,
+            postal_code: address.postal_code,
+            country: address.country,
+            is_default: false
+          }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setSavedAddresses(prev => [...prev, data]);
+          return data.id;
+        } else {
+          return false;
+        }
+      } else {
+        if (window.location.pathname !== "/auth/login" && window.location.pathname !== "/auth/register") {
+          window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "auth/login";
+        }
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let paymentMethod = 'cod';
+    if (formData.paymentMethod === "Credit Card") {
+      paymentMethod = "credit_card";
+    }
+    if (formData.selectedAddress === "new") {
+      const selectedAddr = await handleAddAddress(formData);
+      setFormData(prev => ({ ...prev, selectedAddress: selectedAddr }));
+    }
+
+    try {
+      await Auth();
+      let access_token = Cookies.get('access');
+      const response = await fetch("https://admin.mortorelite.com/api/orders/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${access_token}` },
+        body: JSON.stringify({
+          billing_address_id: formData.selectedAddress,
+          shipping_address_id: formData.selectedAddress,
+          shipping_method_id: 1,
+          payment_method: "credit_card",
+          notes: ""
+        }),
+      });
+      if (response.ok) {
+        window.location.href = process.env.NEXT_PUBLIC_HOMEPAGE + "account";
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Something went wrong. Please check your connection.");
+    }
+  }
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Spinner */}
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 text-lg font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -113,8 +224,8 @@ export default function CheckoutPage() {
               <div key={item.step} className="flex items-center">
                 <div
                   className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${step >= item.step
-                      ? 'bg-blue-600 border-blue-600 text-white'
-                      : 'border-gray-300 text-gray-500'
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'border-gray-300 text-gray-500'
                     }`}
                 >
                   {step > item.step ? (
@@ -185,14 +296,14 @@ export default function CheckoutPage() {
                       onChange={(e) => {
                         const value = e.target.value;
                         if (value === "new") {
-                          setFormData({ ...formData, selectedAddress: "new" });
+                          setFormData({ ...formData, selectedAddress: "new", state: "", street: "", city: "", country: "", postal_code: "" });
                         } else {
-                          const chosen = savedAddresses.find(addr => addr.id === value);
+                          const chosen = savedAddresses.find(addr => addr.id === Number(value));
                           if (chosen) {
                             setFormData({
                               ...formData,
-                              selectedAddress: value,
-                              ...chosen, // auto-fill formData with saved address
+                              selectedAddress: chosen.id,
+                              ...chosen,
                             });
                           }
                         }
@@ -202,7 +313,7 @@ export default function CheckoutPage() {
                       <option value="">-- Select Address --</option>
                       {savedAddresses.map((address) => (
                         <option key={address.id} value={address.id}>
-                          {address.firstName} {address.lastName}, {address.city}, {address.country}
+                          {address.street} {address.city}, {address.state}, {address.country} {address.postal_code}
                         </option>
                       ))}
                       <option value="new">+ Add New Address</option>
@@ -212,56 +323,13 @@ export default function CheckoutPage() {
                   {/* Only show address form if "new" is selected */}
                   {formData.selectedAddress === "new" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          required
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          required
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          required
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                      </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Street</label>
                         <input
                           type="text"
-                          name="address"
+                          name="street"
                           required
-                          value={formData.address}
+                          value={formData.street}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
@@ -292,25 +360,23 @@ export default function CheckoutPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
                         <input
                           type="text"
-                          name="zipCode"
+                          name="postal_code"
                           required
-                          value={formData.zipCode}
+                          value={formData.postal_code}
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-                        <select
+                        <input
+                          type="text"
                           name="country"
+                          required
                           value={formData.country}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-8"
-                        >
-                          <option value="United States">United States</option>
-                          <option value="Canada">Canada</option>
-                          <option value="Mexico">Mexico</option>
-                        </select>
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                       </div>
                     </div>
                   )}
@@ -341,12 +407,12 @@ export default function CheckoutPage() {
                         <input
                           type="radio"
                           name="paymentMethod"
-                          value="card"
-                          checked={formData.paymentMethod === 'card'}
+                          value="Credit Card"
+                          checked={formData.paymentMethod === 'Credit Card'}
                           onChange={handleInputChange}
                           className="sr-only"
                         />
-                        <div className={`p-4 border-2 rounded-lg text-center ${formData.paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                        <div className={`p-4 border-2 rounded-lg text-center ${formData.paymentMethod === 'Credit Card' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
                           }`}>
                           <i className="ri-bank-card-line text-2xl mb-2"></i>
                           <p className="font-medium">Credit Card</p>
@@ -371,7 +437,7 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Credit Card Form */}
-                  {formData.paymentMethod === 'card' && (
+                  {formData.paymentMethod === 'Credit Card' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
@@ -450,18 +516,18 @@ export default function CheckoutPage() {
                       {cartItems.map((item) => (
                         <div key={item.id} className="flex items-center space-x-4 py-4 border-b border-gray-200 last:border-b-0">
                           <img
-                            src={item.image}
-                            alt={item.name}
+                            src={item.product.primary_image.image}
+                            alt={item.product.name}
                             className="w-16 h-16 object-cover object-top rounded-md"
                           />
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{item.name}</h4>
-                            <p className="text-sm text-gray-500">{item.brand}</p>
+                            <h4 className="font-medium text-gray-900">{item.product.name}</h4>
+                            <p className="text-sm text-gray-500">{item.product.brand.name}</p>
                             <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
-                            <p className="text-sm text-gray-500">${item.price}/each</p>
+                            <p className="font-medium text-gray-900">${(item.product.price * item.quantity).toFixed(2)}</p>
+                            <p className="text-sm text-gray-500">${item.product.price}/each</p>
                           </div>
                         </div>
                       ))}
@@ -473,9 +539,8 @@ export default function CheckoutPage() {
                     <div>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Shipping Address</h3>
                       <div className="text-sm text-gray-600">
-                        <p>{formData.firstName} {formData.lastName}</p>
-                        <p>{formData.address}</p>
-                        <p>{formData.city}, {formData.state} {formData.zipCode}</p>
+                        <p>{formData.street}</p>
+                        <p>{formData.city}, {formData.state} {formData.postal_code}</p>
                         <p>{formData.country}</p>
                       </div>
                     </div>
@@ -520,16 +585,16 @@ export default function CheckoutPage() {
                 {cartItems.map((item) => (
                   <div key={item.id} className="flex items-center space-x-3">
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={item.product.primary_image.image}
+                      alt={item.product.name}
                       className="w-12 h-12 object-cover object-top rounded-md"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
+                      <p className="text-sm font-medium text-gray-900 truncate">{item.product.name}</p>
                       <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                     </div>
                     <p className="text-sm font-medium text-gray-900">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${(item.product.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -538,22 +603,20 @@ export default function CheckoutPage() {
               <div className="space-y-3 border-t border-gray-200 pt-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">${subTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">
-                    {shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}
-                  </span>
+                  <span className="font-medium">Free</span>
                 </div>
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <span className="text-gray-600">Tax</span>
                   <span className="font-medium">${tax.toFixed(2)}</span>
-                </div>
+                </div> */}
                 <div className="border-t border-gray-200 pt-3">
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-semibold text-gray-900">Total</span>
-                    <span className="text-lg font-bold text-gray-900">${total.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-gray-900">${subTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
