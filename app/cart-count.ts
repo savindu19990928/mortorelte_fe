@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 export default async function CartItemCount() {
     try {
         let access_token = Cookies.get('access');
-        const response = await fetch("https://admin.mortorelite.com/api/cart/count/", {
+        const response = await fetch("https://admin.mortorelite.com/api/cart/count", {
             method: "GET",
             headers: { "Authorization": `Bearer ${access_token}` }
         });
