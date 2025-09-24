@@ -59,7 +59,7 @@ export default function AboutPage() {
             </div>
             <div className="relative">
               <img
-                src="https://readdy.ai/api/search-image?query=modern%20automotive%20garage%20workshop%20with%20professional%20car%20repair%20equipment%2C%20tools%2C%20and%20auto%20parts%20displayed%20on%20shelves%2C%20clean%20industrial%20setting%20with%20excellent%20lighting%2C%20high-tech%20automotive%20service%20center%20atmosphere%2C%20professional%20mechanic%20workspace%20with%20organized%20tool%20storage&width=1200&height=600&seq=hero1&orientation=landscape"
+                src="/images/hero.jpg"
                 alt="Motor Elite Warehouse"
                 className="rounded-lg shadow-lg object-cover w-full h-96"
               />
@@ -125,7 +125,7 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <img
-                src="https://readdy.ai/api/search-image?query=Professional%20automotive%20engineer%20in%20modern%20workshop%2C%20confident%20middle-aged%20man%20in%20work%20uniform%2C%20automotive%20industry%20professional%20portrait%2C%20clean%20industrial%20background&width=300&height=300&seq=team1&orientation=squarish"
+                src="/images/profile1.jpg"
                 alt="Mike Johnson"
                 className="w-32 h-32 rounded-full mx-auto mb-4 object-cover object-top"
               />
@@ -136,7 +136,7 @@ export default function AboutPage() {
 
             <div className="text-center">
               <img
-                src="https://readdy.ai/api/search-image?query=Professional%20automotive%20parts%20specialist%20woman%20in%20modern%20automotive%20facility%2C%20confident%20female%20automotive%20expert%2C%20industrial%20background%20with%20car%20parts%2C%20professional%20portrait&width=300&height=300&seq=team2&orientation=squarish"
+                src="/images/profile2.jpg"
                 alt="Sarah Chen"
                 className="w-32 h-32 rounded-full mx-auto mb-4 object-cover object-top"
               />
@@ -147,7 +147,7 @@ export default function AboutPage() {
 
             <div className="text-center">
               <img
-                src="https://readdy.ai/api/search-image?query=Professional%20customer%20service%20manager%20in%20automotive%20office%20environment%2C%20friendly%20experienced%20man%20in%20business%20casual%20attire%2C%20modern%20automotive%20facility%20background&width=300&height=300&seq=team3&orientation=squarish"
+                src="/images/profile3.jpg"
                 alt="David Rodriguez"
                 className="w-32 h-32 rounded-full mx-auto mb-4 object-cover object-top"
               />

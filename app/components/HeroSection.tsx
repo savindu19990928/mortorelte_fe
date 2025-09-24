@@ -8,7 +8,7 @@ export default function HeroSection() {
     <section 
       className="relative bg-cover bg-center bg-no-repeat h-[600px] flex items-center"
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://readdy.ai/api/search-image?query=modern%20automotive%20garage%20workshop%20with%20professional%20car%20repair%20equipment%2C%20tools%2C%20and%20auto%20parts%20displayed%20on%20shelves%2C%20clean%20industrial%20setting%20with%20excellent%20lighting%2C%20high-tech%20automotive%20service%20center%20atmosphere%2C%20professional%20mechanic%20workspace%20with%20organized%20tool%20storage&width=1200&height=600&seq=hero1&orientation=landscape')`
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/images/hero.jpg')`
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
