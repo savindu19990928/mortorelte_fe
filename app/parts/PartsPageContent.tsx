@@ -16,14 +16,14 @@ export default function PartsPage() {
     return searchParams.get("category") ?? "All";
   };
 
-  const [maxPrice, setMaxPrice] = useState<number>(500);
+  const [maxPrice, setMaxPrice] = useState<number>(0);
   const [pageCount, setPageCount] = useState<number>(1);
   const [pCount, setPCount] = useState<number>(1);
   const [page, setPage] = useState<number>(1);
   const [brands, setBrands] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0, 500]);
+  const [priceRange, setPriceRange] = useState([0,0]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
