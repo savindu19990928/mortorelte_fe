@@ -25,7 +25,6 @@ export default function PartsPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0,50000]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     fetch("https://admin.mortorelite.com/api/brands/")
@@ -66,14 +65,14 @@ export default function PartsPage() {
         params.append("in_stock", "true");
       }
       const activePriceRange = customPriceRange ?? priceRange;
-      if (isPrice || !isEmpty) {
+      if (isPrice) {
         params.append("price__gte", activePriceRange[0].toString());
         params.append("price__lte", activePriceRange[1].toString());
-      } else if (!isPrice) {
+      } else {
         params.append("price__gte", "0");
         params.append("price__lte", "50000000");
       }
-      setIsEmpty(false);
+      
       params.append("page", page.toString());
       params.append("ordering", sortBy);
 
@@ -99,7 +98,6 @@ export default function PartsPage() {
       } else if (data.results.length === 0 && (!isPrice)) {
         setMaxPrice(0);
         setPriceRange([0, 0]);
-        setIsEmpty(true);
       }
       return [];
     } catch (err) {
