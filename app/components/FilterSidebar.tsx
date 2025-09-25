@@ -1,6 +1,8 @@
 
 'use client';
 
+import { useState } from "react";
+
 interface FilterSidebarProps {
   categories: string[];
   brands: string[];
@@ -39,6 +41,8 @@ export default function FilterSidebar({
       onBrandChange([...selectedBrands, brand]);
     }
   };
+
+  const [tempValue, setTempValue] = useState(priceRange[1]);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -102,8 +106,10 @@ export default function FilterSidebar({
               type="range"
               min="0"
               max={maxPrice}
-              value={priceRange[1]}
-              onChange={(e) => onPriceRangeChange([priceRange[0], parseInt(e.target.value)])}
+              value={tempValue}
+              onChange={(e) => setTempValue(parseInt(e.target.value))}
+              onMouseUp={() => onPriceRangeChange([priceRange[0], tempValue])}
+              onTouchEnd={() => onPriceRangeChange([priceRange[0], tempValue])}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
             />
           </div>
@@ -120,7 +126,7 @@ export default function FilterSidebar({
                 onChange={(e) => onPriceRangeChange([parseInt(e.target.value) || 0, priceRange[1]])}
                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                 min="0"
-                max="500"
+                max={maxPrice}
               />
             </div>
             <div>
@@ -128,10 +134,10 @@ export default function FilterSidebar({
               <input
                 type="number"
                 value={priceRange[1]}
-                onChange={(e) => onPriceRangeChange([priceRange[0], parseInt(e.target.value) || 500])}
+                onChange={(e) => onPriceRangeChange([priceRange[0], parseInt(e.target.value) || maxPrice])}
                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
                 min="0"
-                max="500"
+                max={maxPrice}
               />
             </div>
           </div>

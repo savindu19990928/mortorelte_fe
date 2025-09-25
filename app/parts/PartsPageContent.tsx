@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, SetStateAction } from 'react';
 import Cookies from 'js-cookie';
 import Link from 'next/link';
 import Header from '../../components/Header';
@@ -16,15 +16,16 @@ export default function PartsPage() {
     return searchParams.get("category") ?? "All";
   };
 
-  const [maxPrice, setMaxPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(50000);
   const [pageCount, setPageCount] = useState<number>(1);
   const [pCount, setPCount] = useState<number>(1);
   const [page, setPage] = useState<number>(1);
   const [brands, setBrands] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0,0]);
+  const [priceRange, setPriceRange] = useState([0,50000]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     fetch("https://admin.mortorelite.com/api/brands/")
@@ -48,17 +49,8 @@ export default function PartsPage() {
   const [sortBy, setSortBy] = useState('-created_at');
   const [showOnSale, setShowOnSale] = useState(false);
   const [showInStock, setShowInStock] = useState(false);
-
-  // const filteredProducts = products.filter(product => {
-  //   if (selectedCategory !== 'All' && product.category.name !== selectedCategory) return false;
-  //   if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand.name)) return false;
-  //   if (product.price < priceRange[0] || product.price > priceRange[1]) return false;
-  //   if (showOnSale && !product.compare_price) return false;
-  //   if (showInStock && !product.in_stock) return false;
-  //   return true;
-  // });
-
-  const filteredProducts = async (): Promise<any[]> => {
+  
+  const filteredProducts = async (isPrice: boolean, customPriceRange?: number[]): Promise<any[]> => {
     try {
       await Auth(true);
       const access_token = Cookies.get("access");
@@ -73,8 +65,15 @@ export default function PartsPage() {
       if (showInStock) {
         params.append("in_stock", "true");
       }
-      params.append("price__gte", priceRange[0].toString());
-      params.append("price__lte", priceRange[1].toString());
+      const activePriceRange = customPriceRange ?? priceRange;
+      if (isPrice || !isEmpty) {
+        params.append("price__gte", activePriceRange[0].toString());
+        params.append("price__lte", activePriceRange[1].toString());
+      } else if (!isPrice) {
+        params.append("price__gte", "0");
+        params.append("price__lte", "50000000");
+      }
+      setIsEmpty(false);
       params.append("page", page.toString());
       params.append("ordering", sortBy);
 
@@ -90,17 +89,17 @@ export default function PartsPage() {
       );
 
       const data = await res.json();
-
       setProducts(Object.values(data.results));
       setPageCount(Math.ceil(data.count / 20));
       setPCount(data.count);
 
-      if (data.results.length > 0) {
+      if (data.results.length > 0 && (!isPrice)) {
         setMaxPrice(data.max_price);
-
-        if (data.max_price < priceRange[1]) {
-          setPriceRange([priceRange[0], data.max_price]);
-        }
+        setPriceRange((prev) => [prev[0], data.max_price]);
+      } else if (data.results.length === 0 && (!isPrice)) {
+        setMaxPrice(0);
+        setPriceRange([0, 0]);
+        setIsEmpty(true);
       }
       return [];
     } catch (err) {
@@ -112,8 +111,8 @@ export default function PartsPage() {
   };
 
   useEffect(() => {
-    filteredProducts();
-  }, [selectedBrands, selectedCategory, showInStock, showOnSale, priceRange, page, sortBy]);
+    filteredProducts(false);
+  }, [selectedBrands, selectedCategory, showInStock, showOnSale, page, sortBy]);
 
   if (!isLoaded) {
     return (
@@ -155,7 +154,13 @@ export default function PartsPage() {
               onBrandChange={setSelectedBrands}
               priceRange={priceRange}
               maxPrice={maxPrice}
-              onPriceRangeChange={setPriceRange}
+              onPriceRangeChange={(value) => {
+                setPriceRange((prev) => {
+                  const newRange = [...value];
+                  filteredProducts(true, newRange);
+                  return newRange;
+                });
+              }}
               showOnSale={showOnSale}
               onShowOnSaleChange={setShowOnSale}
               showInStock={showInStock}
