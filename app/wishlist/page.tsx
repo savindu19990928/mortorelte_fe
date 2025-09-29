@@ -137,11 +137,11 @@ export default function WishlistPage() {
             {wishlistItems.map((item) => (
               <div key={item.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 {/* Image */}
-                <div className="relative">
+                <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-gray-100 relative">
                   <img
                     src={item.product.primary_image.image}
                     alt={item.product.name}
-                    className="w-full h-full object-cover object-top"
+                    className="h-full w-full object-cover object-top group-hover:scale-105 transition-transform duration-200"
                   />
                   {!item.product.in_stock && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
