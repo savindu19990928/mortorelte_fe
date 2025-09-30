@@ -23,7 +23,7 @@ export default function PartsPage() {
   const [brands, setBrands] = useState<string[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0,50000]);
+  const [priceRange, setPriceRange] = useState([0, 50000]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function PartsPage() {
   const [sortBy, setSortBy] = useState('-created_at');
   const [showOnSale, setShowOnSale] = useState(false);
   const [showInStock, setShowInStock] = useState(false);
-  
+
   const filteredProducts = async (isPrice: boolean, customPriceRange?: number[]): Promise<any[]> => {
     try {
       await Auth(true);
@@ -72,7 +72,7 @@ export default function PartsPage() {
         params.append("price__gte", "0");
         params.append("price__lte", "50000000");
       }
-      
+
       params.append("page", page.toString());
       params.append("ordering", sortBy);
 
@@ -217,10 +217,10 @@ export default function PartsPage() {
             {products.length > 0 && (
               <div className="mt-12 flex items-center justify-between border-t border-gray-200 pt-6">
                 <div className="flex-1 flex justify-between sm:hidden">
-                  <button onClick={() => setPage(page - 1)} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap">
+                  <button disabled={page === 1} onClick={() => setPage(page - 1)} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap">
                     Previous
                   </button>
-                  <button onClick={() => setPage(page + 1)} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap">
+                  <button disabled={page === pageCount} onClick={() => setPage(page + 1)} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap">
                     Next
                   </button>
                 </div>
