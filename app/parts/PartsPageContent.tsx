@@ -217,12 +217,30 @@ export default function PartsPage() {
             {products.length > 0 && (
               <div className="mt-12 flex items-center justify-between border-t border-gray-200 pt-6">
                 <div className="flex-1 flex justify-between sm:hidden">
-                  <button disabled={page === 1} onClick={() => setPage(page - 1)} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md whitespace-nowrap
+    ${page === 1
+                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                  >
                     Previous
                   </button>
-                  <button disabled={page === pageCount} onClick={() => setPage(page + 1)} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 whitespace-nowrap">
+
+                  <button
+                    disabled={page === pageCount}
+                    onClick={() => setPage(page + 1)}
+                    className={`ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md whitespace-nowrap
+    ${page === pageCount
+                        ? "border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                  >
                     Next
                   </button>
+
                 </div>
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
