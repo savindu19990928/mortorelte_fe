@@ -15,7 +15,7 @@ steps:
   # Step 2: Push Docker image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      ['push', 'gcr.io/able-reef-459216-m2/mortorelitefe']
+      ['push', 'gcr.io/able-reef-459216-m2/mortorelite_fe']
 
   # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -26,7 +26,7 @@ steps:
         'deploy',
         'mortorelite_fe',
         '--image',
-        'gcr.io/able-reef-459216-m2/mortorelitefe',
+        'gcr.io/able-reef-459216-m2/mortorelite_fe',
         '--platform',
         'managed',
         '--region',
