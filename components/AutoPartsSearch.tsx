@@ -15,7 +15,6 @@ export default function AutoPartsSearch() {
 
             const data = await res.json();
             const results = Object.values(data.results);
-            console.log(results);
             setFilteredParts(results);
             setShowDropdown(results.length > 0);
             return [];
